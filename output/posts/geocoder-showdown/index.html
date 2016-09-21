@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article# " vocab="http://ogp.me/ns" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Geocoder Showdown | danpelota.com</title>
+<link href="../../assets/css/all.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
+<link rel="canonical" href="https://www.danpelota.com/posts/geocoder-showdown/">
+<!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]--><meta name="author" content="Dan Ball">
+<meta property="og:site_name" content="danpelota.com">
+<meta property="og:title" content="Geocoder Showdown">
+<meta property="og:url" content="https://www.danpelota.com/posts/geocoder-showdown/">
+<meta property="og:description" content="Back in 2011, I asked a question on gis.stackexchange.com regarding the
+accuracy of range-based geocoders that can be installed and run locally. Since
+then, I've leveraged several solutions for bulk g">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2016-09-19T22:27:08-04:00">
+</head>
+<body class="theme-base-0d">
+    <a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+            styles, `#sidebar-checkbox` for behavior. -->
+    <input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox"><!-- Toggleable sidebar --><div class="sidebar" id="sidebar">
+        <div class="sidebar-item">
+        <p></p>
+        </div>
+        
+    <nav id="menu" role="navigation" class="sidebar-nav"><a class="sidebar-nav-item" href="../../index.html">home</a>
+        <a class="sidebar-nav-item" href="../../archive.html">archives</a>
+        <a class="sidebar-nav-item" href="http://github.com/danpelota">github</a>
+    
+    
+    </nav>
+</div>
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          
+    <h3 id="brand" class="masthead-title">
+      <a href="https://www.danpelota.com/" title="danpelota.com" rel="home">danpelota.com</a>
+    </h3>
+
+        </div>
+      </div>
+
+      <div class="container content" id="content">
+        
+<article class="post-text h-entry hentry postpage" itemscope="itemscope" itemtype="http://schema.org/Article"><header><h1 class="post-title p-name entry-title" itemprop="headline name"><a href="." class="u-url">Geocoder Showdown</a></h1>
+
+        <div class="metadata">
+            <p class="byline author vcard"><span class="byline-name fn">Dan Ball</span></p>
+            <p class="dateline"><a href="." rel="bookmark"><time class="post-date published dt-published" datetime="2016-09-19T22:27:08-04:00" itemprop="datePublished" title="2016-09-19 22:27">2016-09-19 22:27</time></a></p>
+                <p class="commentline">
+        
+    <a href="#disqus_thread" data-disqus-identifier="cache/posts/geocoder-showdown.html">Comments</a>
+
+
+        </p>
+</div>
+        
+
+    </header><div class="e-content entry-content" itemprop="articleBody text">
+    <div>
+<p>Back in 2011, I <a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)">asked a question</a> on gis.stackexchange.com regarding the
+accuracy of range-based geocoders that can be installed and run locally. Since
+then, I've leveraged several solutions for bulk geocoding, including the
+<a class="reference external" href="http://postgis.net/docs/Geocode.html">PostGIS geocoder</a>, the ruby-based <a class="reference external" href="https://github.com/geocommons/geocoder/">Geocommons Geocoder</a>,  and <a class="reference external" href="https://smartystreets.com/">SmartyStreets</a>
+(which doesn't run locally, but has no trouble geocoding millions of addresses
+per hour). However, I haven't come across a thorough analysis of the accuracy
+of these geocoders, and the stackexchange question still receives attention, so
+I figured I'd evaluate them here.</p>
+<p>First, I'll run through the installation of the PostGIS Tiger geocoder, the
+Nominatim geocoder, and the Geocommons Geocoder. While there are web services
+that expose each through APIs, I wanted to document the setup and installation
+of each.</p>
+<p>Then, I'll evaluate each against a test dataset: the Florida extract of the
+<a class="reference external" href="http://openaddresses.io">openaddresses.io</a> database. I'll also evaluate SmartyStreets, which offers
+CASS-certified address standardization and validation through a web API.</p>
+<p>I'll install and evaluate the geocoders on an <tt class="docutils literal">m4.xlarge</tt> AWS EC2 instance
+with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
+(<tt class="docutils literal"><span class="pre">ami-746aba14</span></tt>).</p>
+<div class="section" id="installing-the-geocoders">
+<h2>Installing the Geocoders</h2>
+<div class="section" id="postgresql-9-5-postgis-2-2-and-the-tiger-geocoder">
+<h3>PostgreSQL 9.5, PostGIS 2.2, and the TIGER geocoder</h3>
+<p>First, we'll set the following PostgreSQL environment variables for convenience:</p>
+<pre class="literal-block">
+export PGDATABASE=geocoder
+export PGUSER=postgres
+</pre>
+<p>Next, add the PostgreSQL apt repo and key:</p>
+<pre class="literal-block">
+sudo add-apt-repository \
+    "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+    sudo apt-key add -
+sudo apt-get update
+</pre>
+<p>Install PostgreSQL 9.5 and PostGIS 2.2:</p>
+<pre class="literal-block">
+sudo apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2 \
+    postgresql-server-dev-9.5
+export PATH='/usr/lib/postgresql/9.5/bin/':$PATH
+</pre>
+<p>The PostgreSQL APT repository doesn't package <tt class="docutils literal">shp2pgsql</tt> anymore, so install
+it from the Ubuntu postgis repository:</p>
+<pre class="literal-block">
+sudo apt-get install postgis
+</pre>
+<p>You'll want to edit the PostgreSQL config file
+for optimum performance in bulk-loading data
+(<tt class="docutils literal">/etc/postgresql/9.5/main/postgresql.conf</tt> on Ubuntu) . Here's how I tuned
+my PostgreSQL cluster running on an instance with 16GB of RAM:</p>
+<pre class="literal-block">
+shared_buffers = 4GB
+work_mem = 50MB
+maintenance_work_mem = 4GB
+synchronous_commit = off``
+checkpoint_timeout = 10min
+checkpoint_completion_target = 0.9
+effective_cache_size = 12GB
+</pre>
+<p>I've also set:</p>
+<pre class="literal-block">
+fsync = off
+full_page_writes = off
+</pre>
+<p>Be sure to turn these on after the data has been loaded, or you'll risk not
+only data <em>loss</em> in the event of a crash, but data <em>corruption</em>.</p>
+<p>Also, before connecting to our database, you'll need to edit the <tt class="docutils literal">pg_hba.conf</tt>
+file to <tt class="docutils literal">trust</tt> local connections.</p>
+<p>Create our PostGIS-enabled database and install the geocoder:</p>
+<pre class="literal-block">
+createdb
+psql -c "CREATE EXTENSION postgis;"
+psql -c "CREATE EXTENSION fuzzystrmatch;"
+psql -c "CREATE EXTENSION address_standardizer;"
+psql -c "CREATE EXTENSION postgis_tiger_geocoder;"
+</pre>
+<p>Now we'll generate and run the scripts that download and process the FL TIGER
+data, as well as the national state and county lookup tables needed by the geocoder.</p>
+<pre class="literal-block">
+sudo apt-get install unzip
+
+cd ~
+sudo mkdir /gisdata
+sudo chown ubuntu /gisdata
+psql -t -c "SELECT Loader_Generate_Script(ARRAY['FL'], 'sh');" -o import-fl.sh --no-align
+sh import-fl.sh
+# Go for a long walk
+psql -t -c "SELECT loader_generate_nation_script('sh');" -o import-nation.sh --no-align
+sh import-nation.sh
+</pre>
+<p>Just for good measure:</p>
+<pre class="literal-block">
+psql -c "SELECT install_missing_indexes();"
+psql -c "vacuum analyze verbose tiger.addr;"
+psql -c "vacuum analyze verbose tiger.edges;"
+psql -c "vacuum analyze verbose tiger.faces;"
+psql -c "vacuum analyze verbose tiger.featnames;"
+psql -c "vacuum analyze verbose tiger.place;"
+psql -c "vacuum analyze verbose tiger.cousub;"
+psql -c "vacuum analyze verbose tiger.county;"
+psql -c "vacuum analyze verbose tiger.state;"
+</pre>
+<p>Check that the geocoder and all necessary data was installed correctly:</p>
+<pre class="literal-block">
+psql -c "SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tallahassee, FL 32399', 1);"
+
+       st_x        |       st_y
+-------------------+------------------
+ -84.2807360244119 | 30.4381207774995
+</pre>
+<p>With that, our PostGIS TIGER geocoder is installed and ready to go.</p>
+</div>
+<div class="section" id="the-geocommons-geocoder">
+<h3>The Geocommons Geocoder</h3>
+<p>Install some dependencies:</p>
+<pre class="literal-block">
+apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
+gem install text sqlite3 fastercsv
+</pre>
+<p>Grab the latest version of the geocommons geocoder and install it:</p>
+<pre class="literal-block">
+cd ~
+apt-get install git flex ruby-dev
+git clone git://github.com/geocommons/geocoder.git
+cd geocoder
+make
+make install
+gem install Geocoder-US-2.0.4.gem
+gem install text
+</pre>
+<p>We can use the 2015 Tiger data we downloaded previously:</p>
+<pre class="literal-block">
+mkdir data
+mkdir database
+cd data
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/ADDR/*.zip ./
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/FEATNAMES/*.zip ./
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/*.zip ./
+</pre>
+<p>Create the geocoder database. Note that this must be executed from within the
+<tt class="docutils literal">build</tt> directory since it has a relative path reference to
+<tt class="docutils literal"><span class="pre">../src/shp2sqlite/shp2sqlite</span></tt>:</p>
+<pre class="literal-block">
+cd ../build
+./tiger_import ../database/geocoder.db ../data
+sh build_indexes ../database/geocoder.db
+cd ..
+bin/rebuild_metaphones database/geocoder.db
+sudo sh build/rebuild_cluster database/geocoder.db
+</pre>
+<p>To test the geocommons geocoder, fire up an irb session and geocode a test
+address:</p>
+<pre class="literal-block">
+irb(main):001:0&gt; require 'geocoder/us'
+=&gt; true
+
+irb(main):002:0&gt; db = Geocoder::US::Database.new('database/geocoder.db')
+=&gt; #&lt;Geocoder::US::Database:0x00000001cc1248 @db=#&lt;SQLite3::Database:0x00000001cc1158&gt;, @st={}, @dbtype=1, @debug=false, @threadsafe=false&gt;
+
+irb(main):003:0&gt; p db.geocode("400 S Monroe St, Tallahassee, FL 32399")
+[{:street=&gt;"S Monroe St",
+  :zip=&gt;"32301",
+  :score=&gt;0.805,
+  :prenum=&gt;"",
+  :number=&gt;"400",
+  :precision=&gt;:range,
+  :lon=&gt;-84.280632,
+  :lat=&gt;30.438122}]
+</pre>
+</div>
+<div class="section" id="installing-nominatim">
+<h3>Installing Nominatim</h3>
+<p>Install the Nominatim dependencies (some of these were installed in previous
+steps, but are included here for completeness):</p>
+<pre class="literal-block">
+sudo apt-get install -y build-essential cmake g++ libboost-dev \
+    libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev \
+    libxml2-dev libbz2-dev libpq-dev libgeos-dev libgeos++-dev \
+    libproj-dev postgresql-server-dev-9.5 postgresql-9.5-postgis-2.2 \
+    postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php \
+    php-pear php-db git
+</pre>
+<p>Separate linux user accounts for nominatim:</p>
+<pre class="literal-block">
+sudo useradd -d /srv/nominatim -s /bin/bash -m nominatim
+
+export USERNAME=nominatim
+export USERHOME=/srv/nominatim
+sudo chmod a+wx $USERHOME
+
+createuser -s $USERNAME
+createuser -s www-data
+</pre>
+<p>Install Nominatim:</p>
+<pre class="literal-block">
+cd $USERHOME
+git clone --recursive git://github.com/twain47/Nominatim.git
+cd Nominatim
+</pre>
+<p>Building must happen within the <tt class="docutils literal">build</tt> directory:</p>
+<pre class="literal-block">
+mkdir build
+cd build
+cmake $USERHOME/Nominatim
+make
+</pre>
+<p>Setup the apache webserver:</p>
+<pre class="literal-block">
+sudo tee /etc/apache2/conf-available/nominatim.conf &lt;&lt; EOFAPACHECONF
+&lt;Directory "$USERHOME/Nominatim/build/website"&gt;
+  Options FollowSymLinks MultiViews
+  AddType text/html   .php
+  Require all granted
+&lt;/Directory&gt;
+
+Alias /nominatim $USERHOME/Nominatim/build/website
+EOFAPACHECONF
+</pre>
+<p>Enable the configuration and restart apache:</p>
+<pre class="literal-block">
+sudo a2enconf nominatim
+sudo systemctl restart apache2
+</pre>
+<p>Update the nominatim php settings (<tt class="docutils literal">settings/settings.php</tt>) to reflect our
+version of PostgreSQL, PostGIS, and our local website URL:</p>
+<pre class="literal-block">
+// Software versions
+@define('CONST_Database_DSN', 'pgsql://postgres@localhost/nominatim');
+
+// Website settings
+@define('CONST_Website_BaseURL', '/nominatim/');
+</pre>
+<p>Download OSM data:</p>
+<pre class="literal-block">
+wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
+./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
+</pre>
+<p>At this point, you should be able to point your browser to
+<tt class="docutils literal"><span class="pre">http://localhost/nominatim/status.php</span></tt> and get a page with the text "OK".</p>
+<p>Nominatim can use TIGER address data to supplement the OSM house number data.
+Luckily, we already have the TIGER EDGE data downloaded. First, we'll need to
+convert the data to SQL:</p>
+<pre class="literal-block">
+sudo apt-get install python-gdal
+sudo apt-get install gdal-bin
+
+./utils/imports.php --parse-tiger /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/
+</pre>
+<p>Then we'll load it:</p>
+<pre class="literal-block">
+./utils/setup.php --import-tiger-data
+</pre>
+<p>Enable the use of Tiger data in the settings/local.php file:</p>
+<pre class="literal-block">
+@define('CONST_Use_US_Tiger_Data', true);
+./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
+</pre>
+<p>At this point, all three geocoders are functional and loaded with 2015. Let's
+grab some reference data to use as a benchmark.</p>
+</div>
+</div>
+</div>
+    </div>
+    <aside class="postpromonav"><nav></nav></aside><section class="comments hidden-print"><h2>Comments</h2>
+        
+        
+        <div id="disqus_thread"></div>
+        <script>
+        var disqus_shortname ="danpelota",
+            disqus_url="https://www.danpelota.com/posts/geocoder-showdown/",
+        disqus_title="Geocoder Showdown",
+        disqus_identifier="cache/posts/geocoder-showdown.html",
+        disqus_config = function () {
+            this.language = "en";
+        };
+        (function() {
+            var dsq = document.createElement('script'); dsq.async = true;
+            dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script><noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a>
+</noscript>
+    <a href="https://disqus.com" class="dsq-brlink" rel="nofollow">Comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+        </section></article><script>var disqus_shortname="danpelota";(function(){var a=document.createElement("script");a.async=true;a.src="https://"+disqus_shortname+".disqus.com/count.js";(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(a)}());</script><footer id="footer"><p>Contents © 2016         <a href="mailto:dan@danpelota.com">Dan Ball</a> - Powered by         <a href="https://getnikola.com" rel="nofollow">Nikola</a>         </p>
+            
+        </footer>
+</div>
+    </div>
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+    
+    
+    
+            <script src="../../assets/js/all-nocdn.js"></script><!-- fancy dates --><script>
+    moment.locale("en");
+    fancydates(0, "YYYY-MM-DD HH:mm");
+    </script><!-- end fancy dates -->
+</body>
+</html>

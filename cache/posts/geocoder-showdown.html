@@ -1,0 +1,261 @@
+<p>Back in 2011, I <a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)">asked a question</a> on gis.stackexchange.com regarding the
+accuracy of range-based geocoders that can be installed and run locally. Since
+then, I've leveraged several solutions for bulk geocoding, including the
+<a class="reference external" href="http://postgis.net/docs/Geocode.html">PostGIS geocoder</a>, the ruby-based <a class="reference external" href="https://github.com/geocommons/geocoder/">Geocommons Geocoder</a>,  and <a class="reference external" href="https://smartystreets.com/">SmartyStreets</a>
+(which doesn't run locally, but has no trouble geocoding millions of addresses
+per hour). However, I haven't come across a thorough analysis of the accuracy
+of these geocoders, and the stackexchange question still receives attention, so
+I figured I'd evaluate them here.</p>
+<p>First, I'll run through the installation of the PostGIS Tiger geocoder, the
+Nominatim geocoder, and the Geocommons Geocoder. While there are web services
+that expose each through APIs, I wanted to document the setup and installation
+of each.</p>
+<p>Then, I'll evaluate each against a test dataset: the Florida extract of the
+<a class="reference external" href="http://openaddresses.io">openaddresses.io</a> database. I'll also evaluate SmartyStreets, which offers
+CASS-certified address standardization and validation through a web API.</p>
+<p>I'll install and evaluate the geocoders on an <tt class="docutils literal">m4.xlarge</tt> AWS EC2 instance
+with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
+(<tt class="docutils literal"><span class="pre">ami-746aba14</span></tt>).</p>
+<div class="section" id="installing-the-geocoders">
+<h1>Installing the Geocoders</h1>
+<div class="section" id="postgresql-9-5-postgis-2-2-and-the-tiger-geocoder">
+<h2>PostgreSQL 9.5, PostGIS 2.2, and the TIGER geocoder</h2>
+<p>First, we'll set the following PostgreSQL environment variables for convenience:</p>
+<pre class="literal-block">
+export PGDATABASE=geocoder
+export PGUSER=postgres
+</pre>
+<p>Next, add the PostgreSQL apt repo and key:</p>
+<pre class="literal-block">
+sudo add-apt-repository \
+    &quot;deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main&quot;
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+    sudo apt-key add -
+sudo apt-get update
+</pre>
+<p>Install PostgreSQL 9.5 and PostGIS 2.2:</p>
+<pre class="literal-block">
+sudo apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2 \
+    postgresql-server-dev-9.5
+export PATH='/usr/lib/postgresql/9.5/bin/':$PATH
+</pre>
+<p>The PostgreSQL APT repository doesn't package <tt class="docutils literal">shp2pgsql</tt> anymore, so install
+it from the Ubuntu postgis repository:</p>
+<pre class="literal-block">
+sudo apt-get install postgis
+</pre>
+<p>You'll want to edit the PostgreSQL config file
+for optimum performance in bulk-loading data
+(<tt class="docutils literal">/etc/postgresql/9.5/main/postgresql.conf</tt> on Ubuntu) . Here's how I tuned
+my PostgreSQL cluster running on an instance with 16GB of RAM:</p>
+<pre class="literal-block">
+shared_buffers = 4GB
+work_mem = 50MB
+maintenance_work_mem = 4GB
+synchronous_commit = off``
+checkpoint_timeout = 10min
+checkpoint_completion_target = 0.9
+effective_cache_size = 12GB
+</pre>
+<p>I've also set:</p>
+<pre class="literal-block">
+fsync = off
+full_page_writes = off
+</pre>
+<p>Be sure to turn these on after the data has been loaded, or you'll risk not
+only data <em>loss</em> in the event of a crash, but data <em>corruption</em>.</p>
+<p>Also, before connecting to our database, you'll need to edit the <tt class="docutils literal">pg_hba.conf</tt>
+file to <tt class="docutils literal">trust</tt> local connections.</p>
+<p>Create our PostGIS-enabled database and install the geocoder:</p>
+<pre class="literal-block">
+createdb
+psql -c &quot;CREATE EXTENSION postgis;&quot;
+psql -c &quot;CREATE EXTENSION fuzzystrmatch;&quot;
+psql -c &quot;CREATE EXTENSION address_standardizer;&quot;
+psql -c &quot;CREATE EXTENSION postgis_tiger_geocoder;&quot;
+</pre>
+<p>Now we'll generate and run the scripts that download and process the FL TIGER
+data, as well as the national state and county lookup tables needed by the geocoder.</p>
+<pre class="literal-block">
+sudo apt-get install unzip
+
+cd ~
+sudo mkdir /gisdata
+sudo chown ubuntu /gisdata
+psql -t -c &quot;SELECT Loader_Generate_Script(ARRAY['FL'], 'sh');&quot; -o import-fl.sh --no-align
+sh import-fl.sh
+# Go for a long walk
+psql -t -c &quot;SELECT loader_generate_nation_script('sh');&quot; -o import-nation.sh --no-align
+sh import-nation.sh
+</pre>
+<p>Just for good measure:</p>
+<pre class="literal-block">
+psql -c &quot;SELECT install_missing_indexes();&quot;
+psql -c &quot;vacuum analyze verbose tiger.addr;&quot;
+psql -c &quot;vacuum analyze verbose tiger.edges;&quot;
+psql -c &quot;vacuum analyze verbose tiger.faces;&quot;
+psql -c &quot;vacuum analyze verbose tiger.featnames;&quot;
+psql -c &quot;vacuum analyze verbose tiger.place;&quot;
+psql -c &quot;vacuum analyze verbose tiger.cousub;&quot;
+psql -c &quot;vacuum analyze verbose tiger.county;&quot;
+psql -c &quot;vacuum analyze verbose tiger.state;&quot;
+</pre>
+<p>Check that the geocoder and all necessary data was installed correctly:</p>
+<pre class="literal-block">
+psql -c &quot;SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tallahassee, FL 32399', 1);&quot;
+
+       st_x        |       st_y
+-------------------+------------------
+ -84.2807360244119 | 30.4381207774995
+</pre>
+<p>With that, our PostGIS TIGER geocoder is installed and ready to go.</p>
+</div>
+<div class="section" id="the-geocommons-geocoder">
+<h2>The Geocommons Geocoder</h2>
+<p>Install some dependencies:</p>
+<pre class="literal-block">
+apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
+gem install text sqlite3 fastercsv
+</pre>
+<p>Grab the latest version of the geocommons geocoder and install it:</p>
+<pre class="literal-block">
+cd ~
+apt-get install git flex ruby-dev
+git clone git://github.com/geocommons/geocoder.git
+cd geocoder
+make
+make install
+gem install Geocoder-US-2.0.4.gem
+gem install text
+</pre>
+<p>We can use the 2015 Tiger data we downloaded previously:</p>
+<pre class="literal-block">
+mkdir data
+mkdir database
+cd data
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/ADDR/*.zip ./
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/FEATNAMES/*.zip ./
+cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/*.zip ./
+</pre>
+<p>Create the geocoder database. Note that this must be executed from within the
+<tt class="docutils literal">build</tt> directory since it has a relative path reference to
+<tt class="docutils literal"><span class="pre">../src/shp2sqlite/shp2sqlite</span></tt>:</p>
+<pre class="literal-block">
+cd ../build
+./tiger_import ../database/geocoder.db ../data
+sh build_indexes ../database/geocoder.db
+cd ..
+bin/rebuild_metaphones database/geocoder.db
+sudo sh build/rebuild_cluster database/geocoder.db
+</pre>
+<p>To test the geocommons geocoder, fire up an irb session and geocode a test
+address:</p>
+<pre class="literal-block">
+irb(main):001:0&gt; require 'geocoder/us'
+=&gt; true
+
+irb(main):002:0&gt; db = Geocoder::US::Database.new('database/geocoder.db')
+=&gt; #&lt;Geocoder::US::Database:0x00000001cc1248 &#64;db=#&lt;SQLite3::Database:0x00000001cc1158&gt;, &#64;st={}, &#64;dbtype=1, &#64;debug=false, &#64;threadsafe=false&gt;
+
+irb(main):003:0&gt; p db.geocode(&quot;400 S Monroe St, Tallahassee, FL 32399&quot;)
+[{:street=&gt;&quot;S Monroe St&quot;,
+  :zip=&gt;&quot;32301&quot;,
+  :score=&gt;0.805,
+  :prenum=&gt;&quot;&quot;,
+  :number=&gt;&quot;400&quot;,
+  :precision=&gt;:range,
+  :lon=&gt;-84.280632,
+  :lat=&gt;30.438122}]
+</pre>
+</div>
+<div class="section" id="installing-nominatim">
+<h2>Installing Nominatim</h2>
+<p>Install the Nominatim dependencies (some of these were installed in previous
+steps, but are included here for completeness):</p>
+<pre class="literal-block">
+sudo apt-get install -y build-essential cmake g++ libboost-dev \
+    libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev \
+    libxml2-dev libbz2-dev libpq-dev libgeos-dev libgeos++-dev \
+    libproj-dev postgresql-server-dev-9.5 postgresql-9.5-postgis-2.2 \
+    postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php \
+    php-pear php-db git
+</pre>
+<p>Separate linux user accounts for nominatim:</p>
+<pre class="literal-block">
+sudo useradd -d /srv/nominatim -s /bin/bash -m nominatim
+
+export USERNAME=nominatim
+export USERHOME=/srv/nominatim
+sudo chmod a+wx $USERHOME
+
+createuser -s $USERNAME
+createuser -s www-data
+</pre>
+<p>Install Nominatim:</p>
+<pre class="literal-block">
+cd $USERHOME
+git clone --recursive git://github.com/twain47/Nominatim.git
+cd Nominatim
+</pre>
+<p>Building must happen within the <tt class="docutils literal">build</tt> directory:</p>
+<pre class="literal-block">
+mkdir build
+cd build
+cmake $USERHOME/Nominatim
+make
+</pre>
+<p>Setup the apache webserver:</p>
+<pre class="literal-block">
+sudo tee /etc/apache2/conf-available/nominatim.conf &lt;&lt; EOFAPACHECONF
+&lt;Directory &quot;$USERHOME/Nominatim/build/website&quot;&gt;
+  Options FollowSymLinks MultiViews
+  AddType text/html   .php
+  Require all granted
+&lt;/Directory&gt;
+
+Alias /nominatim $USERHOME/Nominatim/build/website
+EOFAPACHECONF
+</pre>
+<p>Enable the configuration and restart apache:</p>
+<pre class="literal-block">
+sudo a2enconf nominatim
+sudo systemctl restart apache2
+</pre>
+<p>Update the nominatim php settings (<tt class="docutils literal">settings/settings.php</tt>) to reflect our
+version of PostgreSQL, PostGIS, and our local website URL:</p>
+<pre class="literal-block">
+// Software versions
+&#64;define('CONST_Database_DSN', 'pgsql://postgres&#64;localhost/nominatim');
+
+// Website settings
+&#64;define('CONST_Website_BaseURL', '/nominatim/');
+</pre>
+<p>Download OSM data:</p>
+<pre class="literal-block">
+wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
+./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
+</pre>
+<p>At this point, you should be able to point your browser to
+<tt class="docutils literal"><span class="pre">http://localhost/nominatim/status.php</span></tt> and get a page with the text &quot;OK&quot;.</p>
+<p>Nominatim can use TIGER address data to supplement the OSM house number data.
+Luckily, we already have the TIGER EDGE data downloaded. First, we'll need to
+convert the data to SQL:</p>
+<pre class="literal-block">
+sudo apt-get install python-gdal
+sudo apt-get install gdal-bin
+
+./utils/imports.php --parse-tiger /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/
+</pre>
+<p>Then we'll load it:</p>
+<pre class="literal-block">
+./utils/setup.php --import-tiger-data
+</pre>
+<p>Enable the use of Tiger data in the settings/local.php file:</p>
+<pre class="literal-block">
+&#64;define('CONST_Use_US_Tiger_Data', true);
+./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
+</pre>
+<p>At this point, all three geocoders are functional and loaded with 2015. Let's
+grab some reference data to use as a benchmark.</p>
+</div>
+</div>
