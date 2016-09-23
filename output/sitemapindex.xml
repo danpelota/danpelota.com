@@ -6,15 +6,15 @@
     xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
  <sitemap>
-  <loc>https://www.danpelota.com/galleries/rss.xml</loc>
-  <lastmod>2016-09-21T01:25:00Z</lastmod>
+  <loc>http://www.danpelota.com/galleries/rss.xml</loc>
+  <lastmod>2016-09-22T14:25:00Z</lastmod>
  </sitemap>
  <sitemap>
-  <loc>https://www.danpelota.com/rss.xml</loc>
-  <lastmod>2016-09-21T01:20:00Z</lastmod>
+  <loc>http://www.danpelota.com/rss.xml</loc>
+  <lastmod>2016-09-23T02:17:00Z</lastmod>
  </sitemap>
  <sitemap>
-  <loc>https://www.danpelota.com/sitemap.xml</loc>
-  <lastmod>2016-09-21T01:25:00Z</lastmod>
+  <loc>http://www.danpelota.com/sitemap.xml</loc>
+  <lastmod>2016-09-23T02:17:00Z</lastmod>
  </sitemap>
 </sitemapindex>

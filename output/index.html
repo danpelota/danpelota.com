@@ -7,8 +7,8 @@
 <link href="assets/css/all.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="//fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
-<link rel="canonical" href="https://www.danpelota.com/">
-<!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]--><link rel="prefetch" href="posts/geocoder-showdown/" type="text/html">
+<link rel="canonical" href="http://www.danpelota.com/">
+<!--[if lt IE 9]><script src="assets/js/html5.js"></script><![endif]--><link rel="prefetch" href="posts/geocoder-showdown-part-1/" type="text/html">
 </head>
 <body class="theme-base-0d">
     <a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
@@ -34,7 +34,7 @@
         <div class="container">
           
     <h3 id="brand" class="masthead-title">
-      <a href="https://www.danpelota.com/" title="danpelota.com" rel="home">danpelota.com</a>
+      <a href="http://www.danpelota.com/" title="danpelota.com" rel="home">danpelota.com</a>
     </h3>
 
         </div>
@@ -44,13 +44,13 @@
         
 
 <div class="posts">
-    <article class="post h-entry post-text"><header><h1 class="post-title p-name"><a href="posts/geocoder-showdown/" class="u-url">Geocoder Showdown</a></h1>
+    <article class="post h-entry post-text"><header><h1 class="post-title p-name"><a href="posts/geocoder-showdown-part-1/" class="u-url">Geocoder Showdown Part 1: Setup and Installation</a></h1>
         <div class="metadata">
             <p class="byline author vcard"><span class="byline-name fn">Dan Ball</span></p>
-            <p class="dateline"><a href="posts/geocoder-showdown/" rel="bookmark"><time class="post-date published dt-published" datetime="2016-09-19T22:27:08-04:00" title="2016-09-19 22:27">2016-09-19 22:27</time></a></p>
+            <p class="dateline"><a href="posts/geocoder-showdown-part-1/" rel="bookmark"><time class="post-date published dt-published" datetime="2016-09-19T22:27:08-04:00" title="2016-09-19 22:27">2016-09-19 22:27</time></a></p>
                 <p class="commentline">
         
-    <a href="posts/geocoder-showdown/#disqus_thread" data-disqus-identifier="cache/posts/geocoder-showdown.html">Comments</a>
+    <a href="posts/geocoder-showdown-part-1/#disqus_thread" data-disqus-identifier="cache/posts/geocoder-showdown.html">Comments</a>
 
 
         </p>
@@ -62,14 +62,13 @@ accuracy of range-based geocoders that can be installed and run locally. Since
 then, I've leveraged several solutions for bulk geocoding, including the
 <a class="reference external" href="http://postgis.net/docs/Geocode.html">PostGIS geocoder</a>, the ruby-based <a class="reference external" href="https://github.com/geocommons/geocoder/">Geocommons Geocoder</a>,  and <a class="reference external" href="https://smartystreets.com/">SmartyStreets</a>
 (which doesn't run locally, but has no trouble geocoding millions of addresses
-per hour). However, I haven't come across a thorough analysis of the accuracy
-of these geocoders, and the stackexchange question still receives attention, so
-I figured I'd evaluate them here.</p>
-<p>First, I'll run through the installation of the PostGIS Tiger geocoder, the
-Nominatim geocoder, and the Geocommons Geocoder. While there are web services
-that expose each through APIs, I wanted to document the setup and installation
-of each.</p>
-<p>Then, I'll evaluate each against a test dataset: the Florida extract of the
+per hour). However, I haven't come across a thorough comparison of the setup,
+usage, and performance of these geocoders, so I figured I'd evaluate them here.</p>
+<p>In Part 1, I'll cover the installation and configuration of the PostGIS Tiger
+geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
+web services that expose each through APIs, I wanted to document the setup and
+installation of each.</p>
+<p>In Part 2, I'll evaluate each against a test dataset: the Florida extract of the
 <a class="reference external" href="http://openaddresses.io">openaddresses.io</a> database. I'll also evaluate SmartyStreets, which offers
 CASS-certified address standardization and validation through a web API.</p>
 <p>I'll install and evaluate the geocoders on an <tt class="docutils literal">m4.xlarge</tt> AWS EC2 instance
@@ -314,8 +313,8 @@ sudo apt-get install gdal-bin
 @define('CONST_Use_US_Tiger_Data', true);
 ./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 </pre>
-<p>At this point, all three geocoders are functional and loaded with 2015. Let's
-grab some reference data to use as a benchmark.</p>
+<p>At this point, all three geocoders are functional and loaded with 2015 range
+data. In Part 2 we'll cover the geocoding process for each.</p>
 </div>
 </div>
 </div>
@@ -333,9 +332,16 @@ grab some reference data to use as a benchmark.</p>
     </div>
     <label for="sidebar-checkbox" class="sidebar-toggle"></label>
     
-    
-    
-            <script src="assets/js/all-nocdn.js"></script><!-- fancy dates --><script>
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-84560292-1', 'auto');
+    ga('send', 'pageview');
+
+    </script><script src="assets/js/all-nocdn.js"></script><!-- fancy dates --><script>
     moment.locale("en");
     fancydates(0, "YYYY-MM-DD HH:mm");
     </script><!-- end fancy dates -->

@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>danpelota.com</title><link>https://www.danpelota.com/</link><description>This is a demo site for Nikola.</description><atom:link type="application/rss+xml" href="https://www.danpelota.com/rss.xml" rel="self"></atom:link><language>en</language><lastBuildDate>Wed, 21 Sep 2016 01:20:04 GMT</lastBuildDate><generator>https://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Geocoder Showdown</title><link>https://www.danpelota.com/posts/geocoder-showdown/</link><dc:creator>Dan Ball</dc:creator><description>&lt;div&gt;&lt;p&gt;Back in 2011, I &lt;a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)"&gt;asked a question&lt;/a&gt; on gis.stackexchange.com regarding the
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>danpelota.com</title><link>http://www.danpelota.com/</link><description></description><atom:link type="application/rss+xml" href="http://www.danpelota.com/rss.xml" rel="self"></atom:link><language>en</language><lastBuildDate>Fri, 23 Sep 2016 14:59:25 GMT</lastBuildDate><generator>https://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Geocoder Showdown Part 1: Setup and Installation</title><link>http://www.danpelota.com/posts/geocoder-showdown-part-1/</link><dc:creator>Dan Ball</dc:creator><description>&lt;div&gt;&lt;p&gt;Back in 2011, I &lt;a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)"&gt;asked a question&lt;/a&gt; on gis.stackexchange.com regarding the
 accuracy of range-based geocoders that can be installed and run locally. Since
 then, I've leveraged several solutions for bulk geocoding, including the
 &lt;a class="reference external" href="http://postgis.net/docs/Geocode.html"&gt;PostGIS geocoder&lt;/a&gt;, the ruby-based &lt;a class="reference external" href="https://github.com/geocommons/geocoder/"&gt;Geocommons Geocoder&lt;/a&gt;,  and &lt;a class="reference external" href="https://smartystreets.com/"&gt;SmartyStreets&lt;/a&gt;
 (which doesn't run locally, but has no trouble geocoding millions of addresses
-per hour). However, I haven't come across a thorough analysis of the accuracy
-of these geocoders, and the stackexchange question still receives attention, so
-I figured I'd evaluate them here.&lt;/p&gt;
-&lt;p&gt;First, I'll run through the installation of the PostGIS Tiger geocoder, the
-Nominatim geocoder, and the Geocommons Geocoder. While there are web services
-that expose each through APIs, I wanted to document the setup and installation
-of each.&lt;/p&gt;
-&lt;p&gt;Then, I'll evaluate each against a test dataset: the Florida extract of the
+per hour). However, I haven't come across a thorough comparison of the setup,
+usage, and performance of these geocoders, so I figured I'd evaluate them here.&lt;/p&gt;
+&lt;p&gt;In Part 1, I'll cover the installation and configuration of the PostGIS Tiger
+geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
+web services that expose each through APIs, I wanted to document the setup and
+installation of each.&lt;/p&gt;
+&lt;p&gt;In Part 2, I'll evaluate each against a test dataset: the Florida extract of the
 &lt;a class="reference external" href="http://openaddresses.io"&gt;openaddresses.io&lt;/a&gt; database. I'll also evaluate SmartyStreets, which offers
 CASS-certified address standardization and validation through a web API.&lt;/p&gt;
 &lt;p&gt;I'll install and evaluate the geocoders on an &lt;tt class="docutils literal"&gt;m4.xlarge&lt;/tt&gt; AWS EC2 instance
@@ -256,7 +255,7 @@ sudo apt-get install gdal-bin
 @define('CONST_Use_US_Tiger_Data', true);
 ./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 &lt;/pre&gt;
-&lt;p&gt;At this point, all three geocoders are functional and loaded with 2015. Let's
-grab some reference data to use as a benchmark.&lt;/p&gt;
+&lt;p&gt;At this point, all three geocoders are functional and loaded with 2015 range
+data. In Part 2 we'll cover the geocoding process for each.&lt;/p&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;/div&gt;</description><guid>https://www.danpelota.com/posts/geocoder-showdown/</guid><pubDate>Tue, 20 Sep 2016 02:27:08 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;&lt;/div&gt;</description><guid>http://www.danpelota.com/posts/geocoder-showdown-part-1/</guid><pubDate>Tue, 20 Sep 2016 02:27:08 GMT</pubDate></item></channel></rss>

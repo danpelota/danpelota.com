@@ -21,7 +21,7 @@ BLOG_AUTHOR = "Dan Ball"  # (translatable)
 BLOG_TITLE = "danpelota.com"  # (translatable)
 # This is the main URL for your site. It will be used
 # in a prominent link. Don't forget the protocol (http/https)!
-SITE_URL = "https://www.danpelota.com/"
+SITE_URL = "http://www.danpelota.com/"
 # This is the URL where Nikola's output will be deployed.
 # If not set, defaults to SITE_URL
 # BASE_URL = "https://www.danpelota.com/"
@@ -933,7 +933,7 @@ PRETTY_URLS = True
 # Generally, you want FUTURE_IS_NOW and DEPLOY_FUTURE to be the same value.
 # DEPLOY_FUTURE = False
 # If False, draft posts will not be deployed
-# DEPLOY_DRAFTS = True
+DEPLOY_DRAFTS = False
 
 # Allows scheduling of posts using the rule specified here (new_post -s)
 # Specify an iCal Recurrence Rule: http://www.kanzaki.com/docs/ical/rrule.html
@@ -1113,7 +1113,19 @@ MARKDOWN_EXTENSIONS = ['fenced_code', 'codehilite', 'extra']
 # Google Analytics or whatever else you use. Added to the bottom of <body>
 # in the default template (base.tmpl).
 # (translatable)
-# BODY_END = ""
+BODY_END = '''
+<script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-84560292-1', 'auto');
+    ga('send', 'pageview');
+
+    </script>
+
+'''
 
 # The possibility to extract metadata from the filename by using a
 # regular expression.
