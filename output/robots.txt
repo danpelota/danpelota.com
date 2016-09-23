@@ -1,4 +1,4 @@
-Sitemap: http://www.danpelota.com/sitemapindex.xml
+Sitemap: https://danpelota.com/sitemapindex.xml
 
 User-Agent: *
-Host: www.danpelota.com
+Host: danpelota.com
