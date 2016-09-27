@@ -15,7 +15,7 @@
  </url>
  <url>
   <loc>https://danpelota.com/archive.html</loc>
-  <lastmod>2016-09-23T15:05:00Z</lastmod>
+  <lastmod>2016-09-26T23:55:00Z</lastmod>
  </url>
  <url>
   <loc>https://danpelota.com/categories/</loc>
@@ -32,6 +32,10 @@
  <url>
   <loc>https://danpelota.com/posts/geocoder-showdown-part-1/</loc>
   <lastmod>2016-09-22T14:01:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/posts/geocoder-showdown-part-2-geocoding-benchmark-data/</loc>
+  <lastmod>2016-09-24T01:09:00Z</lastmod>
  </url>
  <url>
   <loc>https://danpelota.com/posts/geocoder-showdown/</loc>

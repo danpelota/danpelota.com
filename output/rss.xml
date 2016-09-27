@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>danpelota.com</title><link>https://danpelota.com/</link><description></description><atom:link href="https://danpelota.com/rss.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Fri, 23 Sep 2016 15:05:41 GMT</lastBuildDate><generator>https://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Geocoder Showdown Part 1: Setup and Installation</title><link>https://danpelota.com/posts/geocoder-showdown-part-1/</link><dc:creator>Dan Ball</dc:creator><description>&lt;div&gt;&lt;p&gt;Back in 2011, I &lt;a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)"&gt;asked a question&lt;/a&gt; on gis.stackexchange.com regarding the
+<?xml-stylesheet type="text/xsl" href="assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>danpelota.com</title><link>https://danpelota.com/</link><description></description><atom:link href="https://danpelota.com/rss.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Tue, 27 Sep 2016 00:33:47 GMT</lastBuildDate><generator>https://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Geocoder Showdown Part 1: Setup and Installation</title><link>https://danpelota.com/posts/geocoder-showdown-part-1/</link><dc:creator>Dan Ball</dc:creator><description>&lt;div&gt;&lt;div class="contents topic" id="contents"&gt;
+&lt;p class="topic-title first"&gt;Contents&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;&lt;a class="reference internal" href="https://danpelota.com/posts/geocoder-showdown-part-1/#installing-the-geocoders" id="id2"&gt;Installing the Geocoders&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a class="reference internal" href="https://danpelota.com/posts/geocoder-showdown-part-1/#installing-postgresql-9-5-and-postgis-2-2" id="id3"&gt;Installing PostgreSQL 9.5 and PostGIS 2.2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="https://danpelota.com/posts/geocoder-showdown-part-1/#configuring-the-postgis-tiger-geocoder" id="id4"&gt;Configuring the PostGIS Tiger Geocoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="https://danpelota.com/posts/geocoder-showdown-part-1/#the-geocommons-geocoder" id="id5"&gt;The Geocommons Geocoder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="reference internal" href="https://danpelota.com/posts/geocoder-showdown-part-1/#installing-nominatim" id="id6"&gt;Installing Nominatim&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;p&gt;Back in 2011, I &lt;a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)"&gt;asked a question&lt;/a&gt; on gis.stackexchange.com regarding the
 accuracy of range-based geocoders that can be installed and run locally. Since
-then, I've leveraged several solutions for bulk geocoding, including the
-&lt;a class="reference external" href="http://postgis.net/docs/Geocode.html"&gt;PostGIS geocoder&lt;/a&gt;, the ruby-based &lt;a class="reference external" href="https://github.com/geocommons/geocoder/"&gt;Geocommons Geocoder&lt;/a&gt;,  and &lt;a class="reference external" href="https://smartystreets.com/"&gt;SmartyStreets&lt;/a&gt;
-(which doesn't run locally, but has no trouble geocoding millions of addresses
-per hour). However, I haven't come across a thorough comparison of the setup,
-usage, and performance of these geocoders, so I figured I'd evaluate them here.&lt;/p&gt;
-&lt;p&gt;In Part 1, I'll cover the installation and configuration of the PostGIS Tiger
+then, I've leveraged several solutions for the bulk geocoding of millions of
+addresses, including the &lt;a class="reference external" href="http://postgis.net/docs/Geocode.html"&gt;PostGIS geocoder&lt;/a&gt;, the ruby-based &lt;a class="reference external" href="https://github.com/geocommons/geocoder/"&gt;Geocommons
+Geocoder&lt;/a&gt;,  and &lt;a class="reference external" href="https://smartystreets.com/"&gt;SmartyStreets&lt;/a&gt; (which doesn't run locally but has no trouble
+geocoding millions of addresses per hour). I haven't come across a
+thorough comparison of the setup, usage, and performance of these
+geocoders in the meantime, so I figured I'd evaluate them here.&lt;/p&gt;
+&lt;p&gt;In Part 1 I'll cover the installation and configuration of the PostGIS Tiger
 geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
 web services that expose each through APIs, I wanted to document the setup and
-installation of each.&lt;/p&gt;
-&lt;p&gt;In Part 2, I'll evaluate each against a test dataset: the Florida extract of the
-&lt;a class="reference external" href="http://openaddresses.io"&gt;openaddresses.io&lt;/a&gt; database. I'll also evaluate SmartyStreets, which offers
-CASS-certified address standardization and validation through a web API.&lt;/p&gt;
+installation of each for offline processing.&lt;/p&gt;
+&lt;p&gt;In &lt;a class="reference external" href="/posts/geocoder-showdown-part-2"&gt;Part 2&lt;/a&gt; I'll download, prep, and geocode a reference dataset to use as a
+benchmark: the Florida extract of the &lt;a class="reference external" href="http://openaddresses.io"&gt;openaddresses.io&lt;/a&gt; database.&lt;/p&gt;
+&lt;p&gt;In Part 3, we'll take a look at the accuracy of each geocoder against our
+reference data set.&lt;/p&gt;
+&lt;div class="section" id="installing-the-geocoders"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="https://danpelota.com/posts/geocoder-showdown-part-1/#id2"&gt;Installing the Geocoders&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;I'll install and evaluate the geocoders on an &lt;tt class="docutils literal"&gt;m4.xlarge&lt;/tt&gt; AWS EC2 instance
 with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
 (&lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;ami-746aba14&lt;/span&gt;&lt;/tt&gt;).&lt;/p&gt;
-&lt;div class="section" id="installing-the-geocoders"&gt;
-&lt;h2&gt;Installing the Geocoders&lt;/h2&gt;
-&lt;div class="section" id="postgresql-9-5-postgis-2-2-and-the-tiger-geocoder"&gt;
-&lt;h3&gt;PostgreSQL 9.5, PostGIS 2.2, and the TIGER geocoder&lt;/h3&gt;
-&lt;p&gt;First, we'll set the following PostgreSQL environment variables for convenience:&lt;/p&gt;
+&lt;div class="section" id="installing-postgresql-9-5-and-postgis-2-2"&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="https://danpelota.com/posts/geocoder-showdown-part-1/#id3"&gt;Installing PostgreSQL 9.5 and PostGIS 2.2&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;First we'll set the following PostgreSQL environment variables for convenience:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 export PGDATABASE=geocoder
 export PGUSER=postgres
@@ -44,10 +58,10 @@ it from the Ubuntu postgis repository:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 sudo apt-get install postgis
 &lt;/pre&gt;
-&lt;p&gt;You'll want to edit the PostgreSQL config file
-for optimum performance in bulk-loading data
-(&lt;tt class="docutils literal"&gt;/etc/postgresql/9.5/main/postgresql.conf&lt;/tt&gt; on Ubuntu) . Here's how I tuned
-my PostgreSQL cluster running on an instance with 16GB of RAM:&lt;/p&gt;
+&lt;p&gt;You'll want to edit the PostgreSQL config file for optimum performance while
+bulk-loading data (&lt;tt class="docutils literal"&gt;/etc/postgresql/9.5/main/postgresql.conf&lt;/tt&gt; on Ubuntu) .
+Here's how I tuned my PostgreSQL cluster running on an instance with 16GB of
+RAM:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 shared_buffers = 4GB
 work_mem = 50MB
@@ -66,6 +80,9 @@ full_page_writes = off
 only data &lt;em&gt;loss&lt;/em&gt; in the event of a crash, but data &lt;em&gt;corruption&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;Also, before connecting to our database, you'll need to edit the &lt;tt class="docutils literal"&gt;pg_hba.conf&lt;/tt&gt;
 file to &lt;tt class="docutils literal"&gt;trust&lt;/tt&gt; local connections.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="configuring-the-postgis-tiger-geocoder"&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="https://danpelota.com/posts/geocoder-showdown-part-1/#id4"&gt;Configuring the PostGIS Tiger Geocoder&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Create our PostGIS-enabled database and install the geocoder:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 createdb
@@ -111,7 +128,7 @@ psql -c "SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tall
 &lt;p&gt;With that, our PostGIS TIGER geocoder is installed and ready to go.&lt;/p&gt;
 &lt;/div&gt;
 &lt;div class="section" id="the-geocommons-geocoder"&gt;
-&lt;h3&gt;The Geocommons Geocoder&lt;/h3&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="https://danpelota.com/posts/geocoder-showdown-part-1/#id5"&gt;The Geocommons Geocoder&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Install some dependencies:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
@@ -169,7 +186,7 @@ irb(main):003:0&amp;gt; p db.geocode("400 S Monroe St, Tallahassee, FL 32399")
 &lt;/pre&gt;
 &lt;/div&gt;
 &lt;div class="section" id="installing-nominatim"&gt;
-&lt;h3&gt;Installing Nominatim&lt;/h3&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="https://danpelota.com/posts/geocoder-showdown-part-1/#id6"&gt;Installing Nominatim&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Install the Nominatim dependencies (some of these were installed in previous
 steps, but are included here for completeness):&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
@@ -230,7 +247,8 @@ version of PostgreSQL, PostGIS, and our local website URL:&lt;/p&gt;
 // Website settings
 @define('CONST_Website_BaseURL', '/nominatim/');
 &lt;/pre&gt;
-&lt;p&gt;Download OSM data:&lt;/p&gt;
+&lt;p&gt;Now that Nominatim is installed and configured, we need to download and process
+the Florida extract of the OpenStreetMap data:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
 ./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
@@ -238,8 +256,8 @@ wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.o
 &lt;p&gt;At this point, you should be able to point your browser to
 &lt;tt class="docutils literal"&gt;&lt;span class="pre"&gt;http://localhost/nominatim/status.php&lt;/span&gt;&lt;/tt&gt; and get a page with the text "OK".&lt;/p&gt;
 &lt;p&gt;Nominatim can use TIGER address data to supplement the OSM house number data.
-Luckily, we already have the TIGER EDGE data downloaded. First, we'll need to
-convert the data to SQL:&lt;/p&gt;
+Luckily, we already have the TIGER EDGE data downloaded. We'll need to convert
+the data to SQL to use it:&lt;/p&gt;
 &lt;pre class="literal-block"&gt;
 sudo apt-get install python-gdal
 sudo apt-get install gdal-bin
@@ -255,7 +273,23 @@ sudo apt-get install gdal-bin
 @define('CONST_Use_US_Tiger_Data', true);
 ./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 &lt;/pre&gt;
+&lt;p&gt;Again, let's geocode a test address to confirm everything is configured correctly:&lt;/p&gt;
+&lt;pre class="literal-block"&gt;
+curl "http://127.0.0.1/nominatim/search.php?q=400%20S%20Monroe%20St%2C%20Tallahassee%2C%20FL%2032399&amp;amp;format=json"
+
+[{"place_id":"1828601",
+  "licence":"Data © OpenStreetMap contributors, ODbL 1.0. http:\/\/www.openstreetmap.org\/copyright",
+  "osm_type":"tiger",
+  "osm_id":"1828601",
+  "boundingbox":["30.437948","30.438048","-84.280774","-84.280674"],
+  "lat":"30.437998",
+  "lon":"-84.280724",
+  "display_name":"400, South Monroe Street, Tallahassee, Leon County, Florida, 32301, United States of America",
+  "class":"place",
+  "type":"house",
+  "importance":0.511}]
+&lt;/pre&gt;
 &lt;p&gt;At this point, all three geocoders are functional and loaded with 2015 range
-data. In Part 2 we'll cover the geocoding process for each.&lt;/p&gt;
+data. In &lt;a class="reference external" href="/posts/geocoder-showdown-part-2"&gt;Part 2&lt;/a&gt; we'll load and geocode some benchmark data.&lt;/p&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;/div&gt;</description><guid>https://danpelota.com/posts/geocoder-showdown-part-1/</guid><pubDate>Tue, 20 Sep 2016 02:27:08 GMT</pubDate></item></channel></rss>
+&lt;/div&gt;&lt;/div&gt;</description><guid>https://danpelota.com/posts/geocoder-showdown-part-1/</guid><pubDate>Mon, 19 Sep 2016 04:00:00 GMT</pubDate></item></channel></rss>

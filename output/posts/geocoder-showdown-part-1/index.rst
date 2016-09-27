@@ -1,19 +1,23 @@
 .. title: Geocoder Showdown Part 1: Setup and Installation
 .. slug: geocoder-showdown-part-1
-.. date: 2016-09-19 22:27:08 UTC-04:00
+.. date: 2016-09-19
 .. tags: 
 .. category: 
 .. link: 
 .. description: 
+.. hyphenate: yes
 .. type: text
+
+.. contents ::
 
 Back in 2011, I `asked a question`_ on gis.stackexchange.com regarding the
 accuracy of range-based geocoders that can be installed and run locally. Since
-then, I've leveraged several solutions for bulk geocoding, including the
-`PostGIS geocoder`_, the ruby-based `Geocommons Geocoder`_,  and SmartyStreets_
-(which doesn't run locally, but has no trouble geocoding millions of addresses
-per hour). However, I haven't come across a thorough comparison of the setup,
-usage, and performance of these geocoders, so I figured I'd evaluate them here.
+then, I've leveraged several solutions for the bulk geocoding of millions of
+addresses, including the `PostGIS geocoder`_, the ruby-based `Geocommons
+Geocoder`_,  and SmartyStreets_ (which doesn't run locally but has no trouble
+geocoding millions of addresses per hour). I haven't come across a
+thorough comparison of the setup, usage, and performance of these
+geocoders in the meantime, so I figured I'd evaluate them here.
 
 .. _asked a question: http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)
 .. _PostGIS geocoder: http://postgis.net/docs/Geocode.html
@@ -21,28 +25,31 @@ usage, and performance of these geocoders, so I figured I'd evaluate them here.
 .. _SmartyStreets: https://smartystreets.com/
 
 
-In Part 1, I'll cover the installation and configuration of the PostGIS Tiger
+In Part 1 I'll cover the installation and configuration of the PostGIS Tiger
 geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
 web services that expose each through APIs, I wanted to document the setup and
-installation of each.
+installation of each for offline processing.
 
-In Part 2, I'll evaluate each against a test dataset: the Florida extract of the
-openaddresses.io_ database. I'll also evaluate SmartyStreets, which offers
-CASS-certified address standardization and validation through a web API.
+In `Part 2`_ I'll download, prep, and geocode a reference dataset to use as a
+benchmark: the Florida extract of the openaddresses.io_ database.
 
 .. _openaddresses.io: http://openaddresses.io
+.. _Part 2: link:/posts/geocoder-showdown-part-2
+
+In Part 3, we'll take a look at the accuracy of each geocoder against our
+reference data set.
+
+Installing the Geocoders
+========================
 
 I'll install and evaluate the geocoders on an ``m4.xlarge`` AWS EC2 instance
 with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
 (``ami-746aba14``).
 
-Installing the Geocoders
-========================
+Installing PostgreSQL 9.5 and PostGIS 2.2
+-----------------------------------------
 
-PostgreSQL 9.5, PostGIS 2.2, and the TIGER geocoder
----------------------------------------------------
-
-First, we'll set the following PostgreSQL environment variables for convenience::
+First we'll set the following PostgreSQL environment variables for convenience::
 
     export PGDATABASE=geocoder
     export PGUSER=postgres
@@ -67,10 +74,10 @@ it from the Ubuntu postgis repository::
 
     sudo apt-get install postgis
 
-You'll want to edit the PostgreSQL config file
-for optimum performance in bulk-loading data
-(``/etc/postgresql/9.5/main/postgresql.conf`` on Ubuntu) . Here's how I tuned
-my PostgreSQL cluster running on an instance with 16GB of RAM::
+You'll want to edit the PostgreSQL config file for optimum performance while
+bulk-loading data (``/etc/postgresql/9.5/main/postgresql.conf`` on Ubuntu) .
+Here's how I tuned my PostgreSQL cluster running on an instance with 16GB of
+RAM::
 
     shared_buffers = 4GB
     work_mem = 50MB
@@ -91,6 +98,9 @@ only data *loss* in the event of a crash, but data *corruption*.
 Also, before connecting to our database, you'll need to edit the ``pg_hba.conf``
 file to ``trust`` local connections.
 
+
+Configuring the PostGIS Tiger Geocoder
+--------------------------------------
 Create our PostGIS-enabled database and install the geocoder::
 
     createdb
@@ -258,7 +268,8 @@ version of PostgreSQL, PostGIS, and our local website URL::
     // Website settings
     @define('CONST_Website_BaseURL', '/nominatim/');
 
-Download OSM data::
+Now that Nominatim is installed and configured, we need to download and process
+the Florida extract of the OpenStreetMap data::
 
     wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
     ./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
@@ -267,8 +278,8 @@ At this point, you should be able to point your browser to
 ``http://localhost/nominatim/status.php`` and get a page with the text "OK".
 
 Nominatim can use TIGER address data to supplement the OSM house number data.
-Luckily, we already have the TIGER EDGE data downloaded. First, we'll need to
-convert the data to SQL::
+Luckily, we already have the TIGER EDGE data downloaded. We'll need to convert
+the data to SQL to use it::
 
     sudo apt-get install python-gdal
     sudo apt-get install gdal-bin
@@ -284,5 +295,23 @@ Enable the use of Tiger data in the settings/local.php file::
     @define('CONST_Use_US_Tiger_Data', true);
     ./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 
+Again, let's geocode a test address to confirm everything is configured correctly::
+
+    curl "http://127.0.0.1/nominatim/search.php?q=400%20S%20Monroe%20St%2C%20Tallahassee%2C%20FL%2032399&format=json"
+
+    [{"place_id":"1828601",
+      "licence":"Data © OpenStreetMap contributors, ODbL 1.0. http:\/\/www.openstreetmap.org\/copyright",
+      "osm_type":"tiger",
+      "osm_id":"1828601",
+      "boundingbox":["30.437948","30.438048","-84.280774","-84.280674"],
+      "lat":"30.437998",
+      "lon":"-84.280724",
+      "display_name":"400, South Monroe Street, Tallahassee, Leon County, Florida, 32301, United States of America",
+      "class":"place",
+      "type":"house",
+      "importance":0.511}]
+
 At this point, all three geocoders are functional and loaded with 2015 range
-data. In Part 2 we'll cover the geocoding process for each.
+data. In `Part 2`_ we'll load and geocode some benchmark data.
+
+.. _Part 2: link:/posts/geocoder-showdown-part-2
