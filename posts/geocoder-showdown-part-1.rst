@@ -369,6 +369,4 @@ Again, let's geocode a test address to confirm everything is configured correctl
       "importance":0.511}]
 
 At this point, all three geocoders are functional and loaded with 2015 range
-data. In `Part 2`_ we'll load and geocode some benchmark data.
-
-.. _Part 2: link:/posts/geocoder-showdown-part-2
+data. In Part 2 we'll load and geocode some benchmark data.
