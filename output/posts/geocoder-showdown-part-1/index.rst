@@ -49,13 +49,17 @@ with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
 Installing PostgreSQL 9.5 and PostGIS 2.2
 -----------------------------------------
 
-First we'll set the following PostgreSQL environment variables for convenience::
+First we'll set the following PostgreSQL environment variables for convenience.
+
+.. code-block:: bash
 
     export PGDATABASE=geocoder
     export PGUSER=postgres
 
 
-Next, add the PostgreSQL apt repo and key::
+Next, add the PostgreSQL apt repo and key.
+
+.. code-block:: bash
 
     sudo add-apt-repository \
         "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
@@ -63,31 +67,39 @@ Next, add the PostgreSQL apt repo and key::
         sudo apt-key add -
     sudo apt-get update
 
-Install PostgreSQL 9.5 and PostGIS 2.2::
+Install PostgreSQL 9.5 and PostGIS 2.2:
+
+.. code-block:: bash
 
     sudo apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2 \
         postgresql-server-dev-9.5
     export PATH='/usr/lib/postgresql/9.5/bin/':$PATH
 
 The PostgreSQL APT repository doesn't package ``shp2pgsql`` anymore, so install
-it from the Ubuntu postgis repository::
+it from the Ubuntu postgis repository:
+
+.. code-block:: bash
 
     sudo apt-get install postgis
 
 You'll want to edit the PostgreSQL config file for optimum performance while
 bulk-loading data (``/etc/postgresql/9.5/main/postgresql.conf`` on Ubuntu) .
 Here's how I tuned my PostgreSQL cluster running on an instance with 16GB of
-RAM::
+RAM:
+
+.. code-block:: ini
 
     shared_buffers = 4GB
     work_mem = 50MB
     maintenance_work_mem = 4GB
-    synchronous_commit = off``
+    synchronous_commit = off
     checkpoint_timeout = 10min
     checkpoint_completion_target = 0.9
     effective_cache_size = 12GB
 
-I've also set::
+I've also set:
+
+.. code-block:: ini
 
     fsync = off
     full_page_writes = off
@@ -101,7 +113,9 @@ file to ``trust`` local connections.
 
 Configuring the PostGIS Tiger Geocoder
 --------------------------------------
-Create our PostGIS-enabled database and install the geocoder::
+Create our PostGIS-enabled database and install the geocoder.
+
+.. code-block:: bash
 
     createdb
     psql -c "CREATE EXTENSION postgis;"
@@ -112,7 +126,7 @@ Create our PostGIS-enabled database and install the geocoder::
 Now we'll generate and run the scripts that download and process the FL TIGER
 data, as well as the national state and county lookup tables needed by the geocoder.
 
-::
+.. code-block:: bash
 
     sudo apt-get install unzip
 
@@ -125,7 +139,9 @@ data, as well as the national state and county lookup tables needed by the geoco
     psql -t -c "SELECT loader_generate_nation_script('sh');" -o import-nation.sh --no-align
     sh import-nation.sh
 
-Just for good measure::
+Just for good measure:
+
+.. code-block:: bash
 
     psql -c "SELECT install_missing_indexes();"
     psql -c "vacuum analyze verbose tiger.addr;"
@@ -137,7 +153,9 @@ Just for good measure::
     psql -c "vacuum analyze verbose tiger.county;"
     psql -c "vacuum analyze verbose tiger.state;"
 
-Check that the geocoder and all necessary data was installed correctly::
+Check that the geocoder and all necessary data was installed correctly.
+
+.. code-block:: bash
 
     psql -c "SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tallahassee, FL 32399', 1);"
 
@@ -150,12 +168,16 @@ With that, our PostGIS TIGER geocoder is installed and ready to go.
 The Geocommons Geocoder
 -----------------------
 
-Install some dependencies::
+Install some dependencies:
+
+.. code-block:: bash
 
     apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
     gem install text sqlite3 fastercsv
 
-Grab the latest version of the geocommons geocoder and install it::
+Grab the latest version of the geocommons geocoder and install it:
+
+.. code-block:: bash
 
     cd ~
     apt-get install git flex ruby-dev
@@ -166,7 +188,9 @@ Grab the latest version of the geocommons geocoder and install it::
     gem install Geocoder-US-2.0.4.gem
     gem install text
 
-We can use the 2015 Tiger data we downloaded previously::
+We can use the 2015 Tiger data we downloaded previously:
+
+.. code-block:: bash
 
     mkdir data
     mkdir database
@@ -177,7 +201,9 @@ We can use the 2015 Tiger data we downloaded previously::
 
 Create the geocoder database. Note that this must be executed from within the
 ``build`` directory since it has a relative path reference to
-``../src/shp2sqlite/shp2sqlite``::
+``../src/shp2sqlite/shp2sqlite``:
+
+.. code-block:: bash
 
     cd ../build
     ./tiger_import ../database/geocoder.db ../data
@@ -187,7 +213,9 @@ Create the geocoder database. Note that this must be executed from within the
     sudo sh build/rebuild_cluster database/geocoder.db
 
 To test the geocommons geocoder, fire up an irb session and geocode a test
-address::
+address:
+
+.. code-block:: ruby
 
     irb(main):001:0> require 'geocoder/us'
     => true
@@ -208,7 +236,9 @@ address::
 Installing Nominatim
 --------------------
 Install the Nominatim dependencies (some of these were installed in previous
-steps, but are included here for completeness)::
+steps, but are included here for completeness):
+
+.. code-block:: bash
 
     sudo apt-get install -y build-essential cmake g++ libboost-dev \
         libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev \
@@ -217,7 +247,9 @@ steps, but are included here for completeness)::
         postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php \
         php-pear php-db git
 
-Separate linux user accounts for nominatim::
+We'll use separate linux user accounts for nominatim:
+
+.. code-block:: bash
 
     sudo useradd -d /srv/nominatim -s /bin/bash -m nominatim
 
@@ -228,20 +260,26 @@ Separate linux user accounts for nominatim::
     createuser -s $USERNAME
     createuser -s www-data
 
-Install Nominatim::
+Install Nominatim:
+
+.. code-block:: bash
 
     cd $USERHOME
     git clone --recursive git://github.com/twain47/Nominatim.git
     cd Nominatim
 
-Building must happen within the ``build`` directory::
+Building must happen within the ``build`` directory:
+
+.. code-block:: bash
 
     mkdir build
     cd build
     cmake $USERHOME/Nominatim
     make
 
-Setup the apache webserver::
+Setup the apache webserver:
+
+.. code-block:: bash
 
     sudo tee /etc/apache2/conf-available/nominatim.conf << EOFAPACHECONF
     <Directory "$USERHOME/Nominatim/build/website">
@@ -254,13 +292,17 @@ Setup the apache webserver::
     EOFAPACHECONF
 
 
-Enable the configuration and restart apache::
+Enable the configuration and restart apache:
+
+.. code-block:: bash
 
     sudo a2enconf nominatim
     sudo systemctl restart apache2
 
 Update the nominatim php settings (``settings/settings.php``) to reflect our
-version of PostgreSQL, PostGIS, and our local website URL::
+version of PostgreSQL, PostGIS, and our local website URL:
+
+.. code-block:: php
 
     // Software versions
     @define('CONST_Database_DSN', 'pgsql://postgres@localhost/nominatim');
@@ -269,7 +311,9 @@ version of PostgreSQL, PostGIS, and our local website URL::
     @define('CONST_Website_BaseURL', '/nominatim/');
 
 Now that Nominatim is installed and configured, we need to download and process
-the Florida extract of the OpenStreetMap data::
+the Florida extract of the OpenStreetMap data.
+
+.. code-block:: bash
 
     wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
     ./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
@@ -279,23 +323,36 @@ At this point, you should be able to point your browser to
 
 Nominatim can use TIGER address data to supplement the OSM house number data.
 Luckily, we already have the TIGER EDGE data downloaded. We'll need to convert
-the data to SQL to use it::
+the data to SQL to use it:
+
+.. code-block:: bash
 
     sudo apt-get install python-gdal
     sudo apt-get install gdal-bin
 
     ./utils/imports.php --parse-tiger /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/
 
-Then we'll load it::
+Then we'll load it:
+
+.. code-block:: bash
 
     ./utils/setup.php --import-tiger-data
 
-Enable the use of Tiger data in the settings/local.php file::
+Enable the use of Tiger data in the settings/local.php file...
+
+.. code-block:: php
 
     @define('CONST_Use_US_Tiger_Data', true);
+
+...and then run the setup script:
+
+.. code-block:: bash
+
     ./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 
-Again, let's geocode a test address to confirm everything is configured correctly::
+Again, let's geocode a test address to confirm everything is configured correctly.
+
+.. code-block:: bash
 
     curl "http://127.0.0.1/nominatim/search.php?q=400%20S%20Monroe%20St%2C%20Tallahassee%2C%20FL%2032399&format=json"
 

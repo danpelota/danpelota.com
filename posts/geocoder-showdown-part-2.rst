@@ -20,13 +20,17 @@ OpenAddresses Data
 
 OpenAddresses.io is an effort to aggregate and standardize a global collection
 of address data. We'll be using the Florida extract of the OpenAddresses.io
-data. Download it to get started::
+data. Download it to get started.
+
+.. code-block:: bash
 
     wget http://s3.amazonaws.com/data.openaddresses.io/openaddr-collected-us_south.zip
     unzip openaddr-collected-us_south.zip
     cd us/fl
 
-Create our table to hold the data::
+Create our table to hold the data:
+
+.. code-block:: bash
 
     psql << EOF
     CREATE TABLE addresses (
@@ -43,8 +47,10 @@ Create our table to hold the data::
         hash text);
     EOF
 
-Now copy in all CSV files. There is some overlapping coverage, but we'll deal
-with that later::
+Now copy in all CSV files. There is some overlapping coverage in these files,
+but we'll deal with that later.
+
+.. code-block:: bash
 
     for FILE in *.csv
     do
@@ -54,7 +60,7 @@ with that later::
 
 Pop open ``psql`` and let's take a look!
 
-::
+.. code-block:: sql
 
     SELECT count(*) FROM addresses;
       count
@@ -63,7 +69,9 @@ Pop open ``psql`` and let's take a look!
 
 20 million addresses, ripe for geocoding! However, the OpenAddresses data is
 based on aggregated data from public sources, which often incomplete. Let's
-check the coverage of the address fields::
+check the coverage of the address fields.
+
+.. code-block:: sql
 
     SELECT
        count(*) AS total,
@@ -85,11 +93,13 @@ check the coverage of the address fields::
     city_or_post | 20223850
     all          |  7610472
 
-It looks like only half of all addresses have a zip code, 17.4 million
-have a city, and 7.6 million have all address components. Instead of
+It looks like only half (10 million) of all addresses have a zip code, 17.4
+million have a city, and 7.6 million have all address components. Instead of
 dropping those without all address components, we'll classify each address
-based on the availability of the address components to see how the
-geocoders stand up to missing data::
+based on the completeness of the components to see how the geocoders stand up
+to missing data.
+
+.. code-block:: sql
 
     ALTER TABLE addresses ADD COLUMN components TEXT;
 
@@ -123,7 +133,7 @@ Let's create a stratified random sample of these addresses:
     * 7,500 (15%) with postcode only
     * 7,500 (15%) with city only
 
-::
+.. code-block:: sql
 
     SELECT setseed(0.5);
     CREATE TABLE sampled_addy AS
@@ -154,7 +164,9 @@ Let's create a stratified random sample of these addresses:
     ALTER TABLE sampled_addy ADD COLUMN addy_id SERIAL PRIMARY KEY;
 
 Now that we have a more manageable test set, let's do a little additional
-hygiene::
+hygiene:
+
+.. code-block:: sql
 
     UPDATE sampled_addy
     SET
@@ -165,7 +177,9 @@ hygiene::
         -- Should only be Florida
         region = 'FL';
 
-Let's create a geospatial point column representing the coordinates::
+Let's create a geospatial point column representing the coordinates.
+
+.. code-block:: sql
 
     ALTER TABLE sampled_addy ADD COLUMN geom GEOMETRY('POINT', 4326);
 
@@ -206,3 +220,19 @@ Geocoding: PostGIS Tiger Geocoder
                     1) as geo
         FROM new_samp
         ) g;
+
+    SELECT
+        geocode(
+            (
+            (n).address,
+            (n).predirabbrev,
+            (n).streetname,
+            (n).streettypeabbrev,
+            (n).postdirabbrev,
+            (n).internal,
+            city,
+            'FL',
+            substr(postcode, 1, 5),
+            true
+        )::norm_addy, 1)
+    FROM (SELECT *, normalize_address() as n from new_samp limit 1) t;
