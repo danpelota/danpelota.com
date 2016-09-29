@@ -111,93 +111,93 @@ some reference data for evaluation.</p>
 <p>OpenAddresses.io is an effort to aggregate and standardize a global collection
 of address data. We'll be using the Florida extract of the OpenAddresses.io
 data. Download it to get started.</p>
-<pre class="code bash"><a name="rest_code_b9219eac987d4c0eb35f18a706be6d49-1"></a>wget http://s3.amazonaws.com/data.openaddresses.io/openaddr-collected-us_south.zip
-<a name="rest_code_b9219eac987d4c0eb35f18a706be6d49-2"></a>unzip openaddr-collected-us_south.zip
-<a name="rest_code_b9219eac987d4c0eb35f18a706be6d49-3"></a><span class="nb">cd</span> us/fl
+<pre class="code bash"><a name="rest_code_8b22e2891556416aadcd5c7dfd71e50a-1"></a>wget http://s3.amazonaws.com/data.openaddresses.io/openaddr-collected-us_south.zip
+<a name="rest_code_8b22e2891556416aadcd5c7dfd71e50a-2"></a>unzip openaddr-collected-us_south.zip
+<a name="rest_code_8b22e2891556416aadcd5c7dfd71e50a-3"></a><span class="nb">cd</span> us/fl
 </pre>
 <p>Create our table to hold the data:</p>
-<pre class="code bash"><a name="rest_code_6272309049ff4b09bafeba4de501dc80-1"></a>psql <span class="s">&lt;&lt; EOF</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-2"></a><span class="s">CREATE TABLE addresses (</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-3"></a><span class="s">    lon float,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-4"></a><span class="s">    lat float,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-5"></a><span class="s">    house_number text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-6"></a><span class="s">    street text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-7"></a><span class="s">    unit text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-8"></a><span class="s">    city text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-9"></a><span class="s">    district text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-10"></a><span class="s">    region text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-11"></a><span class="s">    postcode text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-12"></a><span class="s">    id text,</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-13"></a><span class="s">    hash text);</span>
-<a name="rest_code_6272309049ff4b09bafeba4de501dc80-14"></a><span class="s">EOF</span>
+<pre class="code bash"><a name="rest_code_ad20a244f4004dba820df7e3729d0970-1"></a>psql <span class="s">&lt;&lt; EOF</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-2"></a><span class="s">CREATE TABLE addresses (</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-3"></a><span class="s">    lon float,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-4"></a><span class="s">    lat float,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-5"></a><span class="s">    house_number text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-6"></a><span class="s">    street text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-7"></a><span class="s">    unit text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-8"></a><span class="s">    city text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-9"></a><span class="s">    district text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-10"></a><span class="s">    region text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-11"></a><span class="s">    postcode text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-12"></a><span class="s">    id text,</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-13"></a><span class="s">    hash text);</span>
+<a name="rest_code_ad20a244f4004dba820df7e3729d0970-14"></a><span class="s">EOF</span>
 </pre>
 <p>Now copy in all CSV files. There is some overlapping coverage in these files,
 but we'll deal with that later.</p>
-<pre class="code bash"><a name="rest_code_97e28423d90043e5b2b270c010c8919a-1"></a><span class="k">for</span> FILE in *.csv
-<a name="rest_code_97e28423d90043e5b2b270c010c8919a-2"></a><span class="k">do</span>
-<a name="rest_code_97e28423d90043e5b2b270c010c8919a-3"></a>    <span class="nb">echo</span> <span class="s2">"Loading </span><span class="nv">$FILE</span><span class="s2">"</span>
-<a name="rest_code_97e28423d90043e5b2b270c010c8919a-4"></a>    psql -c <span class="s2">"\copy addresses FROM </span><span class="nv">$FILE</span><span class="s2"> CSV HEADER"</span>
-<a name="rest_code_97e28423d90043e5b2b270c010c8919a-5"></a><span class="k">done</span>
+<pre class="code bash"><a name="rest_code_95cd9f4362cb4afc8a6fc34ed2feaae8-1"></a><span class="k">for</span> FILE in *.csv
+<a name="rest_code_95cd9f4362cb4afc8a6fc34ed2feaae8-2"></a><span class="k">do</span>
+<a name="rest_code_95cd9f4362cb4afc8a6fc34ed2feaae8-3"></a>    <span class="nb">echo</span> <span class="s2">"Loading </span><span class="nv">$FILE</span><span class="s2">"</span>
+<a name="rest_code_95cd9f4362cb4afc8a6fc34ed2feaae8-4"></a>    psql -c <span class="s2">"\copy addresses FROM </span><span class="nv">$FILE</span><span class="s2"> CSV HEADER"</span>
+<a name="rest_code_95cd9f4362cb4afc8a6fc34ed2feaae8-5"></a><span class="k">done</span>
 </pre>
 <p>Pop open <tt class="docutils literal">psql</tt> and let's take a look!</p>
-<pre class="code sql"><a name="rest_code_8e7bd24aa24a4af28d3f8a423e75ffae-1"></a><span class="k">SELECT</span> <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">addresses</span><span class="p">;</span>
-<a name="rest_code_8e7bd24aa24a4af28d3f8a423e75ffae-2"></a>  <span class="k">count</span>
-<a name="rest_code_8e7bd24aa24a4af28d3f8a423e75ffae-3"></a><span class="c1">----------</span>
-<a name="rest_code_8e7bd24aa24a4af28d3f8a423e75ffae-4"></a> <span class="mi">20558789</span>
+<pre class="code sql"><a name="rest_code_0823f740eae84eb58b289b72ef9a9b54-1"></a><span class="k">SELECT</span> <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">addresses</span><span class="p">;</span>
+<a name="rest_code_0823f740eae84eb58b289b72ef9a9b54-2"></a>  <span class="k">count</span>
+<a name="rest_code_0823f740eae84eb58b289b72ef9a9b54-3"></a><span class="c1">----------</span>
+<a name="rest_code_0823f740eae84eb58b289b72ef9a9b54-4"></a> <span class="mi">20558789</span>
 </pre>
 <p>20 million addresses, ripe for geocoding! However, the OpenAddresses data is
 based on aggregated data from public sources, which often incomplete. Let's
 check the coverage of the address fields.</p>
-<pre class="code sql"><a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-1"></a><span class="k">SELECT</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-2"></a>   <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-3"></a>   <span class="k">count</span><span class="p">(</span><span class="n">house_number</span><span class="p">)</span> <span class="k">AS</span> <span class="n">h_number</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-4"></a>   <span class="k">count</span><span class="p">(</span><span class="n">street</span><span class="p">)</span> <span class="k">AS</span> <span class="n">street</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-5"></a>   <span class="k">count</span><span class="p">(</span><span class="n">city</span><span class="p">)</span> <span class="k">AS</span> <span class="n">city</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-6"></a>   <span class="k">count</span><span class="p">(</span><span class="n">postcode</span><span class="p">)</span> <span class="k">AS</span> <span class="n">postcode</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-7"></a>   <span class="k">count</span><span class="p">(</span><span class="n">COALESCE</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="n">postcode</span><span class="p">))</span> <span class="k">AS</span> <span class="n">city_or_post</span><span class="p">,</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-8"></a>   <span class="k">count</span><span class="p">(</span><span class="n">house_number</span> <span class="o">||</span> <span class="n">street</span> <span class="o">||</span> <span class="n">city</span> <span class="o">||</span> <span class="n">postcode</span><span class="p">)</span> <span class="k">AS</span> <span class="k">all</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-9"></a><span class="k">FROM</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-10"></a>   <span class="n">addresses</span><span class="p">;</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-11"></a>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-12"></a><span class="o">-</span><span class="p">[</span> <span class="n">RECORD</span> <span class="mi">1</span> <span class="p">]</span><span class="o">+</span><span class="c1">---------</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-13"></a><span class="n">total</span>        <span class="o">|</span> <span class="mi">20558789</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-14"></a><span class="n">h_number</span>     <span class="o">|</span> <span class="mi">18432928</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-15"></a><span class="n">street</span>       <span class="o">|</span> <span class="mi">20538609</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-16"></a><span class="n">city</span>         <span class="o">|</span> <span class="mi">17411392</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-17"></a><span class="n">postcode</span>     <span class="o">|</span> <span class="mi">10488002</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-18"></a><span class="n">city_or_post</span> <span class="o">|</span> <span class="mi">20223850</span>
-<a name="rest_code_6e47d6c4d2134cdb959f25e7ea46f432-19"></a><span class="k">all</span>          <span class="o">|</span>  <span class="mi">7610472</span>
+<pre class="code sql"><a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-1"></a><span class="k">SELECT</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-2"></a>   <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-3"></a>   <span class="k">count</span><span class="p">(</span><span class="n">house_number</span><span class="p">)</span> <span class="k">AS</span> <span class="n">h_number</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-4"></a>   <span class="k">count</span><span class="p">(</span><span class="n">street</span><span class="p">)</span> <span class="k">AS</span> <span class="n">street</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-5"></a>   <span class="k">count</span><span class="p">(</span><span class="n">city</span><span class="p">)</span> <span class="k">AS</span> <span class="n">city</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-6"></a>   <span class="k">count</span><span class="p">(</span><span class="n">postcode</span><span class="p">)</span> <span class="k">AS</span> <span class="n">postcode</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-7"></a>   <span class="k">count</span><span class="p">(</span><span class="n">COALESCE</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="n">postcode</span><span class="p">))</span> <span class="k">AS</span> <span class="n">city_or_post</span><span class="p">,</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-8"></a>   <span class="k">count</span><span class="p">(</span><span class="n">house_number</span> <span class="o">||</span> <span class="n">street</span> <span class="o">||</span> <span class="n">city</span> <span class="o">||</span> <span class="n">postcode</span><span class="p">)</span> <span class="k">AS</span> <span class="k">all</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-9"></a><span class="k">FROM</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-10"></a>   <span class="n">addresses</span><span class="p">;</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-11"></a>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-12"></a><span class="o">-</span><span class="p">[</span> <span class="n">RECORD</span> <span class="mi">1</span> <span class="p">]</span><span class="o">+</span><span class="c1">---------</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-13"></a><span class="n">total</span>        <span class="o">|</span> <span class="mi">20558789</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-14"></a><span class="n">h_number</span>     <span class="o">|</span> <span class="mi">18432928</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-15"></a><span class="n">street</span>       <span class="o">|</span> <span class="mi">20538609</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-16"></a><span class="n">city</span>         <span class="o">|</span> <span class="mi">17411392</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-17"></a><span class="n">postcode</span>     <span class="o">|</span> <span class="mi">10488002</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-18"></a><span class="n">city_or_post</span> <span class="o">|</span> <span class="mi">20223850</span>
+<a name="rest_code_ca6d2fa45efb4f0b8d52c502b97db960-19"></a><span class="k">all</span>          <span class="o">|</span>  <span class="mi">7610472</span>
 </pre>
 <p>It looks like only half (10 million) of all addresses have a zip code, 17.4
 million have a city, and 7.6 million have all address components. Instead of
 dropping those without all address components, we'll classify each address
 based on the completeness of the components to see how the geocoders stand up
 to missing data.</p>
-<pre class="code sql"><a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-1"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">addresses</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">components</span> <span class="nb">TEXT</span><span class="p">;</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-2"></a>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-3"></a><span class="c1">-- Consider "unincorporated" to be a missing city component</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-4"></a><span class="k">UPDATE</span> <span class="n">addresses</span> <span class="k">SET</span> <span class="n">city</span> <span class="o">=</span> <span class="k">NULL</span> <span class="k">WHERE</span> <span class="n">city</span> <span class="o">=</span> <span class="s1">'Unincorporated'</span><span class="p">;</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-5"></a>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-6"></a><span class="k">UPDATE</span> <span class="n">ADDRESSES</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-7"></a><span class="k">SET</span> <span class="n">components</span> <span class="o">=</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-8"></a>    <span class="k">CASE</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-9"></a>        <span class="c1">-- We won't even try to geocode these</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-10"></a>        <span class="k">WHEN</span> <span class="n">house_number</span> <span class="o">||</span> <span class="n">street</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'bad'</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-11"></a>        <span class="k">WHEN</span> <span class="n">city</span> <span class="o">||</span> <span class="n">postcode</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'all'</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-12"></a>        <span class="k">WHEN</span> <span class="n">city</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">then</span> <span class="s1">'city only'</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-13"></a>        <span class="k">WHEN</span> <span class="n">postcode</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'postcode only'</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-14"></a>        <span class="k">ELSE</span> <span class="s1">'street only'</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-15"></a>    <span class="k">END</span><span class="p">;</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-16"></a>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-17"></a><span class="k">SELECT</span> <span class="n">components</span><span class="p">,</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">addresses</span> <span class="k">GROUP</span> <span class="k">BY</span> <span class="mi">1</span><span class="p">;</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-18"></a>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-19"></a>  <span class="n">components</span>   <span class="o">|</span>  <span class="k">count</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-20"></a><span class="c1">---------------+---------</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-21"></a> <span class="n">bad</span>           <span class="o">|</span> <span class="mi">2131815</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-22"></a> <span class="k">all</span>           <span class="o">|</span> <span class="mi">7019191</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-23"></a> <span class="n">postcode</span> <span class="k">only</span> <span class="o">|</span> <span class="mi">3390495</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-24"></a> <span class="n">street</span> <span class="k">only</span>   <span class="o">|</span>  <span class="mi">327029</span>
-<a name="rest_code_92207912c3bc4090bd70b20329d1d8b4-25"></a> <span class="n">city</span> <span class="k">only</span>     <span class="o">|</span> <span class="mi">7690259</span>
+<pre class="code sql"><a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-1"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">addresses</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">components</span> <span class="nb">TEXT</span><span class="p">;</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-2"></a>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-3"></a><span class="c1">-- Consider "unincorporated" to be a missing city component</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-4"></a><span class="k">UPDATE</span> <span class="n">addresses</span> <span class="k">SET</span> <span class="n">city</span> <span class="o">=</span> <span class="k">NULL</span> <span class="k">WHERE</span> <span class="n">city</span> <span class="o">=</span> <span class="s1">'Unincorporated'</span><span class="p">;</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-5"></a>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-6"></a><span class="k">UPDATE</span> <span class="n">ADDRESSES</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-7"></a><span class="k">SET</span> <span class="n">components</span> <span class="o">=</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-8"></a>    <span class="k">CASE</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-9"></a>        <span class="c1">-- We won't even try to geocode these</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-10"></a>        <span class="k">WHEN</span> <span class="n">house_number</span> <span class="o">||</span> <span class="n">street</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'bad'</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-11"></a>        <span class="k">WHEN</span> <span class="n">city</span> <span class="o">||</span> <span class="n">postcode</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'all'</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-12"></a>        <span class="k">WHEN</span> <span class="n">city</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">then</span> <span class="s1">'city only'</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-13"></a>        <span class="k">WHEN</span> <span class="n">postcode</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="k">THEN</span> <span class="s1">'postcode only'</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-14"></a>        <span class="k">ELSE</span> <span class="s1">'street only'</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-15"></a>    <span class="k">END</span><span class="p">;</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-16"></a>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-17"></a><span class="k">SELECT</span> <span class="n">components</span><span class="p">,</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">addresses</span> <span class="k">GROUP</span> <span class="k">BY</span> <span class="mi">1</span><span class="p">;</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-18"></a>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-19"></a>  <span class="n">components</span>   <span class="o">|</span>  <span class="k">count</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-20"></a><span class="c1">---------------+---------</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-21"></a> <span class="n">bad</span>           <span class="o">|</span> <span class="mi">2131815</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-22"></a> <span class="k">all</span>           <span class="o">|</span> <span class="mi">7019191</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-23"></a> <span class="n">postcode</span> <span class="k">only</span> <span class="o">|</span> <span class="mi">3390495</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-24"></a> <span class="n">street</span> <span class="k">only</span>   <span class="o">|</span>  <span class="mi">327029</span>
+<a name="rest_code_418f3f86cfd04c71b0c24cb06d1edfda-25"></a> <span class="n">city</span> <span class="k">only</span>     <span class="o">|</span> <span class="mi">7690259</span>
 </pre>
 <p>Let's create a stratified random sample of these addresses:</p>
 <blockquote>
@@ -207,99 +207,134 @@ to missing data.</p>
 <li>7,500 (15%) with city only</li>
 </ul>
 </blockquote>
-<pre class="code sql"><a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-1"></a><span class="k">SELECT</span> <span class="n">setseed</span><span class="p">(</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">);</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-2"></a><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">AS</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-3"></a><span class="p">(</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-4"></a>    <span class="k">SELECT</span> <span class="o">*</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-5"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-6"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'all'</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-7"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-8"></a>    <span class="k">LIMIT</span> <span class="mi">35000</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-9"></a><span class="p">)</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-10"></a><span class="k">UNION</span> <span class="k">ALL</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-11"></a><span class="p">(</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-12"></a>    <span class="k">SELECT</span> <span class="o">*</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-13"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-14"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'postcode only'</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-15"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-16"></a>    <span class="k">LIMIT</span> <span class="mi">7500</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-17"></a><span class="p">)</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-18"></a><span class="k">UNION</span> <span class="k">ALL</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-19"></a><span class="p">(</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-20"></a>    <span class="k">SELECT</span> <span class="o">*</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-21"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-22"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'city only'</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-23"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-24"></a>    <span class="k">LIMIT</span> <span class="mi">7500</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-25"></a><span class="p">);</span>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-26"></a>
-<a name="rest_code_c0fac27fbb17472c9b29358b10ab592b-27"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">addy_id</span> <span class="nb">SERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">;</span>
+<pre class="code sql"><a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-1"></a><span class="k">SELECT</span> <span class="n">setseed</span><span class="p">(</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">);</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-2"></a><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">AS</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-3"></a><span class="p">(</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-4"></a>    <span class="k">SELECT</span> <span class="o">*</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-5"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-6"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'all'</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-7"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-8"></a>    <span class="k">LIMIT</span> <span class="mi">35000</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-9"></a><span class="p">)</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-10"></a><span class="k">UNION</span> <span class="k">ALL</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-11"></a><span class="p">(</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-12"></a>    <span class="k">SELECT</span> <span class="o">*</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-13"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-14"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'postcode only'</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-15"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-16"></a>    <span class="k">LIMIT</span> <span class="mi">7500</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-17"></a><span class="p">)</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-18"></a><span class="k">UNION</span> <span class="k">ALL</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-19"></a><span class="p">(</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-20"></a>    <span class="k">SELECT</span> <span class="o">*</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-21"></a>    <span class="k">FROM</span> <span class="n">addresses</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-22"></a>    <span class="k">WHERE</span> <span class="n">components</span> <span class="o">=</span> <span class="s1">'city only'</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-23"></a>    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">random</span><span class="p">()</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-24"></a>    <span class="k">LIMIT</span> <span class="mi">7500</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-25"></a><span class="p">);</span>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-26"></a>
+<a name="rest_code_a640a6e3b06c44d4ae3c7a34465a9444-27"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">addy_id</span> <span class="nb">SERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">;</span>
 </pre>
 <p>Now that we have a more manageable test set, let's do a little additional
 hygiene:</p>
-<pre class="code sql"><a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-1"></a><span class="k">UPDATE</span> <span class="n">sampled_addy</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-2"></a><span class="k">SET</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-3"></a>    <span class="n">street</span> <span class="o">=</span> <span class="k">upper</span><span class="p">(</span><span class="n">street</span><span class="p">),</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-4"></a>    <span class="n">unit</span> <span class="o">=</span> <span class="k">upper</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-5"></a>    <span class="c1">-- I noticed some city names have embedded hyphens/underscores</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-6"></a>    <span class="n">city</span> <span class="o">=</span> <span class="k">upper</span><span class="p">(</span><span class="n">regexp_replace</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="s1">'_|-'</span><span class="p">,</span> <span class="s1">' '</span><span class="p">,</span> <span class="s1">'g'</span><span class="p">)),</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-7"></a>    <span class="c1">-- Should only be Florida</span>
-<a name="rest_code_5cabad550d69454298ae1d2a8f4a1905-8"></a>    <span class="n">region</span> <span class="o">=</span> <span class="s1">'FL'</span><span class="p">;</span>
+<pre class="code sql"><a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-1"></a><span class="k">UPDATE</span> <span class="n">sampled_addy</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-2"></a><span class="k">SET</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-3"></a>    <span class="n">street</span> <span class="o">=</span> <span class="k">upper</span><span class="p">(</span><span class="n">street</span><span class="p">),</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-4"></a>    <span class="n">unit</span> <span class="o">=</span> <span class="n">COALESCE</span><span class="p">(</span><span class="k">upper</span><span class="p">(</span><span class="n">unit</span><span class="p">),</span> <span class="s1">''</span><span class="p">),</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-5"></a>    <span class="c1">-- I noticed some city names have embedded hyphens/underscores</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-6"></a>    <span class="n">city</span> <span class="o">=</span> <span class="n">COALESCE</span><span class="p">(</span><span class="k">upper</span><span class="p">(</span><span class="n">regexp_replace</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="s1">'_|-'</span><span class="p">,</span> <span class="s1">' '</span><span class="p">,</span> <span class="s1">'g'</span><span class="p">)),</span> <span class="s1">''</span><span class="p">),</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-7"></a>    <span class="c1">-- Should only be Florida</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-8"></a>    <span class="n">region</span> <span class="o">=</span> <span class="s1">'FL'</span><span class="p">,</span>
+<a name="rest_code_a14b4900f3ce406f8cafe36ec219cfc3-9"></a>    <span class="n">postcode</span> <span class="o">=</span> <span class="n">COALESCE</span><span class="p">(</span><span class="n">substr</span><span class="p">(</span><span class="n">postcode</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="s1">''</span><span class="p">);</span>
 </pre>
 <p>Let's create a geospatial point column representing the coordinates.</p>
-<pre class="code sql"><a name="rest_code_6df7dc401a384c0583703976eecb2787-1"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">geom</span> <span class="n">GEOMETRY</span><span class="p">(</span><span class="s1">'POINT'</span><span class="p">,</span> <span class="mi">4326</span><span class="p">);</span>
-<a name="rest_code_6df7dc401a384c0583703976eecb2787-2"></a>
-<a name="rest_code_6df7dc401a384c0583703976eecb2787-3"></a><span class="k">UPDATE</span> <span class="n">sampled_addy</span>
-<a name="rest_code_6df7dc401a384c0583703976eecb2787-4"></a><span class="k">SET</span> <span class="n">geom</span> <span class="o">=</span> <span class="n">ST_SetSrid</span><span class="p">(</span><span class="n">ST_MakePoint</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">),</span> <span class="mi">4326</span><span class="p">);</span>
-<a name="rest_code_6df7dc401a384c0583703976eecb2787-5"></a>
-<a name="rest_code_6df7dc401a384c0583703976eecb2787-6"></a><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="k">ON</span> <span class="n">sampled_addy</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">geom</span><span class="p">);</span>
+<pre class="code sql"><a name="rest_code_fe835763017d45ff9c0d492e417e99b9-1"></a><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">sampled_addy</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">geom</span> <span class="n">GEOMETRY</span><span class="p">(</span><span class="s1">'POINT'</span><span class="p">,</span> <span class="mi">4326</span><span class="p">);</span>
+<a name="rest_code_fe835763017d45ff9c0d492e417e99b9-2"></a>
+<a name="rest_code_fe835763017d45ff9c0d492e417e99b9-3"></a><span class="k">UPDATE</span> <span class="n">sampled_addy</span>
+<a name="rest_code_fe835763017d45ff9c0d492e417e99b9-4"></a><span class="k">SET</span> <span class="n">geom</span> <span class="o">=</span> <span class="n">ST_SetSrid</span><span class="p">(</span><span class="n">ST_MakePoint</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">),</span> <span class="mi">4326</span><span class="p">);</span>
+<a name="rest_code_fe835763017d45ff9c0d492e417e99b9-5"></a>
+<a name="rest_code_fe835763017d45ff9c0d492e417e99b9-6"></a><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="k">ON</span> <span class="n">sampled_addy</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">geom</span><span class="p">);</span>
 </pre>
 </div>
 <div class="section" id="geocoding-postgis-tiger-geocoder">
 <h2><a class="toc-backref" href="#id2">Geocoding: PostGIS Tiger Geocoder</a></h2>
-<pre class="literal-block">
-CREATE TABLE tiger_geocoded (
-    addy_id integer,
-    lat float,
-    lon float,
-    geom geometry('POINT', 4326),
-    precision float,
-    method text);
-
-INSERT INTO tiger_geocoded
-SELECT
-    addy_id,
-    ST_Y((g.geo).geomout)::numeric,
-    ST_X((g.geo).geomout)::numeric,
-    ST_Transform((g.geo).geomout, 4326),
-    (g.geo).rating,
-    'postgis'
-FROM (
-    SELECT
-        addy_id,
-        geocode((house_number || ' ' ||
-                 street || ' ' ||
-                 city || ' ' ||
-                 region || ' ' || postcode),
-                1) as geo
-    FROM new_samp
-    ) g;
-
-SELECT
-    geocode(
-        (
-        (n).address,
-        (n).predirabbrev,
-        (n).streetname,
-        (n).streettypeabbrev,
-        (n).postdirabbrev,
-        (n).internal,
-        city,
-        'FL',
-        substr(postcode, 1, 5),
-        true
-    )::norm_addy, 1)
-FROM (SELECT *, normalize_address() as n from new_samp limit 1) t;
+<p>We'll create a table to hold the results from each geocoder. First, the Tiger geocoder.</p>
+<pre class="code sql"><a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-1"></a><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tiger_geocoded</span> <span class="p">(</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-2"></a>    <span class="n">addy_id</span> <span class="nb">integer</span><span class="p">,</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-3"></a>    <span class="n">lat</span> <span class="nb">float</span><span class="p">,</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-4"></a>    <span class="n">lon</span> <span class="nb">float</span><span class="p">,</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-5"></a>    <span class="n">geom</span> <span class="n">geometry</span><span class="p">(</span><span class="s1">'POINT'</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-6"></a>    <span class="k">precision</span> <span class="nb">float</span><span class="p">,</span>
+<a name="rest_code_4e94c47d90a0471399c4fb9c92fab845-7"></a>    <span class="k">method</span> <span class="nb">text</span><span class="p">);</span>
+</pre>
+<p>We have a few options on the granularity of the address components we submit.
+One option is to concatenate all address components into a single freeform
+string and let the geocoder's address parser handle it. However, since we
+already have some address components broken out, we can also try specifying the
+city, state, and zip code components individually. The street number and name
+components still need to be parsed since the unit numbers are often embedded in
+the <tt class="docutils literal">street</tt> field and predirections are not broken out. We'll try both.</p>
+<p>First, using the freeform addresses. The <tt class="docutils literal">geocode</tt> function will accept a
+freeform address string, parse the address into the geocoder's <tt class="docutils literal">norm_addy</tt>
+type, and return the normalized address, the geocoded geometry, and a rating
+representing the estimated quality of the geocode.</p>
+<pre class="code sql"><a name="rest_code_8f18195b10954e59bffe88b75b319212-1"></a><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tiger_geocoded</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-2"></a><span class="k">SELECT</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-3"></a>    <span class="n">addy_id</span><span class="p">,</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-4"></a>    <span class="n">ST_Y</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-5"></a>    <span class="n">ST_X</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-6"></a>    <span class="n">ST_Transform</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-7"></a>    <span class="p">(</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">rating</span><span class="p">,</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-8"></a>    <span class="s1">'postgis-freeform'</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-9"></a><span class="k">FROM</span> <span class="p">(</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-10"></a>    <span class="k">SELECT</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-11"></a>        <span class="n">addy_id</span><span class="p">,</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-12"></a>        <span class="n">geocode</span><span class="p">((</span><span class="n">house_number</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-13"></a>                 <span class="n">street</span> <span class="o">||</span> <span class="s1">', '</span> <span class="o">||</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-14"></a>                 <span class="n">city</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-15"></a>                 <span class="n">region</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">postcode</span><span class="p">),</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-16"></a>                <span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">geo</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-17"></a>    <span class="k">FROM</span> <span class="n">sampled_addy</span>
+<a name="rest_code_8f18195b10954e59bffe88b75b319212-18"></a>    <span class="p">)</span> <span class="k">g</span><span class="p">;</span>
+</pre>
+<p>Let's try one more time, manually setting the city, state, and zipcode where
+available. We'll still need the geocoder to parse the address so we can extract
+the street number, predirection, street name, postdirection, and unit number.</p>
+<pre class="code sql"><a name="rest_code_0059a081ff0b437c87c2fe5757a50022-1"></a><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tiger_geocoded</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-2"></a><span class="k">SELECT</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-3"></a>    <span class="n">addy_id</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-4"></a>    <span class="n">ST_Y</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-5"></a>    <span class="n">ST_X</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-6"></a>    <span class="n">ST_Transform</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-7"></a>    <span class="p">(</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">rating</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-8"></a>    <span class="s1">'postgis-parsed'</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-9"></a><span class="k">FROM</span> <span class="p">(</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-10"></a>    <span class="k">SELECT</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-11"></a>        <span class="n">addy_id</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-12"></a>        <span class="n">geocode</span><span class="p">(</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-13"></a>            <span class="p">(</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-14"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">address</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-15"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">predirabbrev</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-16"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">streetname</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-17"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">streettypeabbrev</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-18"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">postdirabbrev</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-19"></a>                <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">internal</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-20"></a>                <span class="n">city</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-21"></a>                <span class="s1">'FL'</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-22"></a>                <span class="n">substr</span><span class="p">(</span><span class="n">postcode</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-23"></a>                <span class="k">true</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-24"></a>            <span class="p">)::</span><span class="n">norm_addy</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">as</span> <span class="n">geo</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-25"></a>    <span class="k">FROM</span> <span class="p">(</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-26"></a>            <span class="k">SELECT</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-27"></a>                <span class="o">*</span><span class="p">,</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-28"></a>                <span class="n">normalize_address</span><span class="p">(</span><span class="n">house_number</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-29"></a>                     <span class="n">street</span> <span class="o">||</span> <span class="s1">', '</span> <span class="o">||</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-30"></a>                     <span class="n">city</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-31"></a>                     <span class="n">region</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">postcode</span><span class="p">)</span> <span class="k">as</span> <span class="n">norm</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-32"></a>             <span class="k">FROM</span> <span class="n">sampled_addy</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-33"></a>             <span class="k">LIMIT</span> <span class="mi">10</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-34"></a>        <span class="p">)</span> <span class="n">n</span>
+<a name="rest_code_0059a081ff0b437c87c2fe5757a50022-35"></a><span class="p">)</span> <span class="k">g</span><span class="p">;</span>
 </pre>
 </div>
 </div>

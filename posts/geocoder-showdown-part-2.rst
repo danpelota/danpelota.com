@@ -171,11 +171,12 @@ hygiene:
     UPDATE sampled_addy
     SET
         street = upper(street),
-        unit = upper(unit),
+        unit = COALESCE(upper(unit), ''),
         -- I noticed some city names have embedded hyphens/underscores
-        city = upper(regexp_replace(city, '_|-', ' ', 'g')),
+        city = COALESCE(upper(regexp_replace(city, '_|-', ' ', 'g')), ''),
         -- Should only be Florida
-        region = 'FL';
+        region = 'FL',
+        postcode = COALESCE(substr(postcode, 1, 5), '');
 
 Let's create a geospatial point column representing the coordinates.
 
@@ -192,7 +193,9 @@ Let's create a geospatial point column representing the coordinates.
 Geocoding: PostGIS Tiger Geocoder
 ---------------------------------
 
-::
+We'll create a table to hold the results from each geocoder. First, the Tiger geocoder.
+
+.. code-block:: sql
 
     CREATE TABLE tiger_geocoded (
         addy_id integer,
@@ -202,6 +205,21 @@ Geocoding: PostGIS Tiger Geocoder
         precision float,
         method text);
 
+We have a few options on the granularity of the address components we submit.
+One option is to concatenate all address components into a single freeform
+string and let the geocoder's address parser handle it. However, since we
+already have some address components broken out, we can also try specifying the
+city, state, and zip code components individually. The street number and name
+components still need to be parsed since the unit numbers are often embedded in
+the ``street`` field and predirections are not broken out. We'll try both.
+
+First, using the freeform addresses. The ``geocode`` function will accept a
+freeform address string, parse the address into the geocoder's ``norm_addy``
+type, and return the normalized address, the geocoded geometry, and a rating
+representing the estimated quality of the geocode.
+
+.. code-block:: sql
+
     INSERT INTO tiger_geocoded
     SELECT
         addy_id,
@@ -209,30 +227,56 @@ Geocoding: PostGIS Tiger Geocoder
         ST_X((g.geo).geomout)::numeric,
         ST_Transform((g.geo).geomout, 4326),
         (g.geo).rating,
-        'postgis'
+        'postgis-freeform'
     FROM (
         SELECT
             addy_id,
             geocode((house_number || ' ' ||
-                     street || ' ' ||
+                     street || ', ' ||
                      city || ' ' ||
                      region || ' ' || postcode),
                     1) as geo
-        FROM new_samp
+        FROM sampled_addy
         ) g;
 
+Let's try one more time, manually setting the city, state, and zipcode where
+available. We'll still need the geocoder to parse the address so we can extract
+the street number, predirection, street name, postdirection, and unit number.
+
+.. code-block:: sql
+
+    INSERT INTO tiger_geocoded
     SELECT
-        geocode(
-            (
-            (n).address,
-            (n).predirabbrev,
-            (n).streetname,
-            (n).streettypeabbrev,
-            (n).postdirabbrev,
-            (n).internal,
-            city,
-            'FL',
-            substr(postcode, 1, 5),
-            true
-        )::norm_addy, 1)
-    FROM (SELECT *, normalize_address() as n from new_samp limit 1) t;
+        addy_id,
+        ST_Y((g.geo).geomout)::numeric,
+        ST_X((g.geo).geomout)::numeric,
+        ST_Transform((g.geo).geomout, 4326),
+        (g.geo).rating,
+        'postgis-parsed'
+    FROM (
+        SELECT
+            addy_id,
+            geocode(
+                (
+                    (norm).address,
+                    (norm).predirabbrev,
+                    (norm).streetname,
+                    (norm).streettypeabbrev,
+                    (norm).postdirabbrev,
+                    (norm).internal,
+                    city,
+                    'FL',
+                    substr(postcode, 1, 5),
+                    true
+                )::norm_addy, 1) as geo
+        FROM (
+                SELECT
+                    *,
+                    normalize_address(house_number || ' ' ||
+                         street || ', ' ||
+                         city || ' ' ||
+                         region || ' ' || postcode) as norm
+                 FROM sampled_addy
+                 LIMIT 10
+            ) n
+    ) g;
