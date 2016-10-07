@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article# " lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="geocode-parsed.sql">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geocode-parsed.sql | danpelota.com</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
+<link rel="canonical" href="https://danpelota.com/listings/geocode/geocode-parsed.sql.html">
+<!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+</head>
+<body>
+<a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
+
+<!-- Menubar -->
+
+<nav class="navbar navbar-default navbar-static-top"><div class="container">
+<!-- This keeps the margins nice -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar" aria-controls="bs-navbar" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="https://danpelota.com/">
+
+                <span id="blog-title">danpelota.com</span>
+            </a>
+        </div>
+<!-- /.navbar-header -->
+        <div class="collapse navbar-collapse" id="bs-navbar" aria-expanded="false">
+            <ul class="nav navbar-nav">
+<li>
+<a href="../../index.html">home</a>
+                </li>
+<li>
+<a href="../../archive.html">archives</a>
+                </li>
+<li>
+<a href="http://github.com/danpelota">github</a>
+
+                
+            </li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+    <a href="geocode-parsed.sql" id="sourcelink">Source</a>
+    </li>
+
+                
+            </ul>
+</div>
+<!-- /.navbar-collapse -->
+    </div>
+<!-- /.container -->
+</nav><!-- End of Menubar --><div class="container" id="content" role="main">
+    <div class="body-content">
+        <!--Body content-->
+        <div class="row">
+            
+            
+
+<nav class="breadcrumbs"><ul class="breadcrumb">
+<li><a href="../">listings</a></li>
+                <li><a href=".">geocode</a></li>
+                <li>geocode-parsed.sql</li>
+</ul></nav><h1>geocode-parsed.sql
+        <small><a href="geocode-parsed.sql">(Source)</a></small>
+    </h1>
+    <table class="codetable"><tr>
+<td class="linenos"><div class="linenodiv"><pre><a href="#listingsgeocodegeocode-parsedsql-1"> 1</a>
+<a href="#listingsgeocodegeocode-parsedsql-2"> 2</a>
+<a href="#listingsgeocodegeocode-parsedsql-3"> 3</a>
+<a href="#listingsgeocodegeocode-parsedsql-4"> 4</a>
+<a href="#listingsgeocodegeocode-parsedsql-5"> 5</a>
+<a href="#listingsgeocodegeocode-parsedsql-6"> 6</a>
+<a href="#listingsgeocodegeocode-parsedsql-7"> 7</a>
+<a href="#listingsgeocodegeocode-parsedsql-8"> 8</a>
+<a href="#listingsgeocodegeocode-parsedsql-9"> 9</a>
+<a href="#listingsgeocodegeocode-parsedsql-10">10</a>
+<a href="#listingsgeocodegeocode-parsedsql-11">11</a>
+<a href="#listingsgeocodegeocode-parsedsql-12">12</a>
+<a href="#listingsgeocodegeocode-parsedsql-13">13</a>
+<a href="#listingsgeocodegeocode-parsedsql-14">14</a>
+<a href="#listingsgeocodegeocode-parsedsql-15">15</a>
+<a href="#listingsgeocodegeocode-parsedsql-16">16</a>
+<a href="#listingsgeocodegeocode-parsedsql-17">17</a>
+<a href="#listingsgeocodegeocode-parsedsql-18">18</a>
+<a href="#listingsgeocodegeocode-parsedsql-19">19</a>
+<a href="#listingsgeocodegeocode-parsedsql-20">20</a>
+<a href="#listingsgeocodegeocode-parsedsql-21">21</a>
+<a href="#listingsgeocodegeocode-parsedsql-22">22</a>
+<a href="#listingsgeocodegeocode-parsedsql-23">23</a>
+<a href="#listingsgeocodegeocode-parsedsql-24">24</a>
+<a href="#listingsgeocodegeocode-parsedsql-25">25</a>
+<a href="#listingsgeocodegeocode-parsedsql-26">26</a>
+<a href="#listingsgeocodegeocode-parsedsql-27">27</a>
+<a href="#listingsgeocodegeocode-parsedsql-28">28</a>
+<a href="#listingsgeocodegeocode-parsedsql-29">29</a>
+<a href="#listingsgeocodegeocode-parsedsql-30">30</a>
+<a href="#listingsgeocodegeocode-parsedsql-31">31</a>
+<a href="#listingsgeocodegeocode-parsedsql-32">32</a>
+<a href="#listingsgeocodegeocode-parsedsql-33">33</a>
+<a href="#listingsgeocodegeocode-parsedsql-34">34</a>
+<a href="#listingsgeocodegeocode-parsedsql-35">35</a>
+<a href="#listingsgeocodegeocode-parsedsql-36">36</a>
+<a href="#listingsgeocodegeocode-parsedsql-37">37</a></pre></div></td>
+<td class="code"><pre class="code literal-block"><a name="listingsgeocodegeocode-parsedsql-1"></a><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tiger_geocoded</span>
+<a name="listingsgeocodegeocode-parsedsql-2"></a><span class="k">SELECT</span> <span class="k">DISTINCT</span> <span class="k">ON</span> <span class="p">(</span><span class="n">addy_id</span><span class="p">)</span>
+<a name="listingsgeocodegeocode-parsedsql-3"></a>    <span class="n">addy_id</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-4"></a>    <span class="n">ST_Y</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-5"></a>    <span class="n">ST_X</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">)::</span><span class="nb">numeric</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-6"></a>    <span class="n">ST_Transform</span><span class="p">((</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">geomout</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span>
+<a name="listingsgeocodegeocode-parsedsql-7"></a>    <span class="p">(</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">rating</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-8"></a>    <span class="s1">'postgis-parsed'</span>
+<a name="listingsgeocodegeocode-parsedsql-9"></a><span class="k">FROM</span> <span class="p">(</span>
+<a name="listingsgeocodegeocode-parsedsql-10"></a>    <span class="k">SELECT</span>
+<a name="listingsgeocodegeocode-parsedsql-11"></a>        <span class="n">addy_id</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-12"></a>        <span class="n">geocode</span><span class="p">(</span>
+<a name="listingsgeocodegeocode-parsedsql-13"></a>        <span class="p">(</span>
+<a name="listingsgeocodegeocode-parsedsql-14"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">address</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-15"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">predirabbrev</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-16"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">streetname</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-17"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">streettypeabbrev</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-18"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">postdirabbrev</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-19"></a>            <span class="p">(</span><span class="n">norm</span><span class="p">).</span><span class="n">internal</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-20"></a>            <span class="n">city</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-21"></a>            <span class="s1">'FL'</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-22"></a>            <span class="n">substr</span><span class="p">(</span><span class="n">postcode</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<a name="listingsgeocodegeocode-parsedsql-23"></a>            <span class="k">true</span>
+<a name="listingsgeocodegeocode-parsedsql-24"></a>        <span class="p">)::</span><span class="n">norm_addy</span><span class="p">)</span> <span class="k">as</span> <span class="n">geo</span>
+<a name="listingsgeocodegeocode-parsedsql-25"></a>    <span class="k">FROM</span> <span class="p">(</span>
+<a name="listingsgeocodegeocode-parsedsql-26"></a>        <span class="k">SELECT</span>
+<a name="listingsgeocodegeocode-parsedsql-27"></a>            <span class="n">a</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+<a name="listingsgeocodegeocode-parsedsql-28"></a>            <span class="n">normalize_address</span><span class="p">(</span><span class="n">house_number</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="listingsgeocodegeocode-parsedsql-29"></a>            <span class="n">street</span> <span class="o">||</span> <span class="s1">', '</span> <span class="o">||</span>
+<a name="listingsgeocodegeocode-parsedsql-30"></a>            <span class="n">city</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span>
+<a name="listingsgeocodegeocode-parsedsql-31"></a>            <span class="n">region</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">postcode</span><span class="p">)</span> <span class="k">as</span> <span class="n">norm</span>
+<a name="listingsgeocodegeocode-parsedsql-32"></a>        <span class="k">FROM</span> <span class="n">sampled_addy</span> <span class="n">a</span>
+<a name="listingsgeocodegeocode-parsedsql-33"></a>            <span class="k">LEFT</span> <span class="k">JOIN</span> <span class="n">geocoded</span> <span class="k">c</span> <span class="k">ON</span> <span class="k">c</span><span class="p">.</span><span class="k">method</span> <span class="o">=</span> <span class="s1">'postgis-parsed'</span> <span class="k">AND</span> <span class="n">a</span><span class="p">.</span><span class="n">addy_id</span> <span class="o">=</span> <span class="k">c</span><span class="p">.</span><span class="n">addy_id</span>
+<a name="listingsgeocodegeocode-parsedsql-34"></a>        <span class="k">WHERE</span> <span class="k">c</span><span class="p">.</span><span class="n">addy_id</span> <span class="k">IS</span> <span class="k">NULL</span>
+<a name="listingsgeocodegeocode-parsedsql-35"></a>    <span class="p">)</span> <span class="n">n</span>
+<a name="listingsgeocodegeocode-parsedsql-36"></a><span class="p">)</span> <span class="k">g</span>
+<a name="listingsgeocodegeocode-parsedsql-37"></a><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">addy_id</span><span class="p">,</span> <span class="p">(</span><span class="k">g</span><span class="p">.</span><span class="n">geo</span><span class="p">).</span><span class="n">rating</span><span class="p">;</span>
+</pre></td>
+</tr></table>
+</div>
+        <!--End of body content-->
+
+        <footer id="footer">
+            Contents © 2016         <a href="mailto:dan@danpelota.com">Dan Ball</a> - Powered by         <a href="https://getnikola.com" rel="nofollow">Nikola</a>         
+            
+        </footer>
+</div>
+</div>
+
+
+            <script src="../../assets/js/all-nocdn.js"></script><script>$('a.image-reference:not(.islink) img:not(.islink)').parent().colorbox({rel:"gal",maxWidth:"100%",maxHeight:"100%",scalePhotos:true});</script><!-- fancy dates --><script>
+    moment.locale("en");
+    fancydates(0, "MM/DD/YYYY");
+    </script><!-- end fancy dates --><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-84560292-1', 'auto');
+    ga('send', 'pageview');
+
+    </script>
+</body>
+</html>

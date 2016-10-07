@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article# " lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="geocode.rb">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geocode.rb | danpelota.com</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<meta content="#5670d4" name="theme-color">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
+<link rel="canonical" href="https://danpelota.com/listings/geocode/geocode.rb.html">
+<!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]-->
+</head>
+<body>
+<a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
+
+<!-- Menubar -->
+
+<nav class="navbar navbar-default navbar-static-top"><div class="container">
+<!-- This keeps the margins nice -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar" aria-controls="bs-navbar" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="https://danpelota.com/">
+
+                <span id="blog-title">danpelota.com</span>
+            </a>
+        </div>
+<!-- /.navbar-header -->
+        <div class="collapse navbar-collapse" id="bs-navbar" aria-expanded="false">
+            <ul class="nav navbar-nav">
+<li>
+<a href="../../index.html">home</a>
+                </li>
+<li>
+<a href="../../archive.html">archives</a>
+                </li>
+<li>
+<a href="http://github.com/danpelota">github</a>
+
+                
+            </li>
+</ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+    <a href="geocode.rb" id="sourcelink">Source</a>
+    </li>
+
+                
+            </ul>
+</div>
+<!-- /.navbar-collapse -->
+    </div>
+<!-- /.container -->
+</nav><!-- End of Menubar --><div class="container" id="content" role="main">
+    <div class="body-content">
+        <!--Body content-->
+        <div class="row">
+            
+            
+
+<nav class="breadcrumbs"><ul class="breadcrumb">
+<li><a href="../">listings</a></li>
+                <li><a href=".">geocode</a></li>
+                <li>geocode.rb</li>
+</ul></nav><h1>geocode.rb
+        <small><a href="geocode.rb">(Source)</a></small>
+    </h1>
+    <table class="codetable"><tr>
+<td class="linenos"><div class="linenodiv"><pre><a href="#listingsgeocodegeocoderb-1"> 1</a>
+<a href="#listingsgeocodegeocoderb-2"> 2</a>
+<a href="#listingsgeocodegeocoderb-3"> 3</a>
+<a href="#listingsgeocodegeocoderb-4"> 4</a>
+<a href="#listingsgeocodegeocoderb-5"> 5</a>
+<a href="#listingsgeocodegeocoderb-6"> 6</a>
+<a href="#listingsgeocodegeocoderb-7"> 7</a>
+<a href="#listingsgeocodegeocoderb-8"> 8</a>
+<a href="#listingsgeocodegeocoderb-9"> 9</a>
+<a href="#listingsgeocodegeocoderb-10">10</a>
+<a href="#listingsgeocodegeocoderb-11">11</a>
+<a href="#listingsgeocodegeocoderb-12">12</a>
+<a href="#listingsgeocodegeocoderb-13">13</a>
+<a href="#listingsgeocodegeocoderb-14">14</a>
+<a href="#listingsgeocodegeocoderb-15">15</a>
+<a href="#listingsgeocodegeocoderb-16">16</a>
+<a href="#listingsgeocodegeocoderb-17">17</a>
+<a href="#listingsgeocodegeocoderb-18">18</a>
+<a href="#listingsgeocodegeocoderb-19">19</a>
+<a href="#listingsgeocodegeocoderb-20">20</a>
+<a href="#listingsgeocodegeocoderb-21">21</a>
+<a href="#listingsgeocodegeocoderb-22">22</a>
+<a href="#listingsgeocodegeocoderb-23">23</a>
+<a href="#listingsgeocodegeocoderb-24">24</a>
+<a href="#listingsgeocodegeocoderb-25">25</a>
+<a href="#listingsgeocodegeocoderb-26">26</a>
+<a href="#listingsgeocodegeocoderb-27">27</a>
+<a href="#listingsgeocodegeocoderb-28">28</a>
+<a href="#listingsgeocodegeocoderb-29">29</a>
+<a href="#listingsgeocodegeocoderb-30">30</a>
+<a href="#listingsgeocodegeocoderb-31">31</a>
+<a href="#listingsgeocodegeocoderb-32">32</a>
+<a href="#listingsgeocodegeocoderb-33">33</a>
+<a href="#listingsgeocodegeocoderb-34">34</a>
+<a href="#listingsgeocodegeocoderb-35">35</a>
+<a href="#listingsgeocodegeocoderb-36">36</a>
+<a href="#listingsgeocodegeocoderb-37">37</a></pre></div></td>
+<td class="code"><pre class="code literal-block"><a name="listingsgeocodegeocoderb-1"></a><span class="nb">require</span> <span class="s1">'pg'</span>
+<a name="listingsgeocodegeocoderb-2"></a><span class="nb">require</span> <span class="s1">'geocoder/us'</span>
+<a name="listingsgeocodegeocoderb-3"></a>
+<a name="listingsgeocodegeocoderb-4"></a><span class="n">db</span> <span class="o">=</span> <span class="no">Geocoder</span><span class="o">::</span><span class="no">US</span><span class="o">::</span><span class="no">Database</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">'/home/ubuntu/geocoder/database/geocoder.db'</span><span class="p">)</span>
+<a name="listingsgeocodegeocoderb-5"></a>
+<a name="listingsgeocodegeocoderb-6"></a><span class="n">conn</span> <span class="o">=</span> <span class="no">PG</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<a name="listingsgeocodegeocoderb-7"></a>
+<a name="listingsgeocodegeocoderb-8"></a><span class="n">geocoded</span> <span class="o">=</span> <span class="nb">Array</span><span class="o">.</span><span class="n">new</span>
+<a name="listingsgeocodegeocoderb-9"></a>
+<a name="listingsgeocodegeocoderb-10"></a><span class="n">sql</span> <span class="o">=</span> <span class="sx">%q(</span>
+<a name="listingsgeocodegeocoderb-11"></a><span class="sx">SELECT</span>
+<a name="listingsgeocodegeocoderb-12"></a><span class="sx">    a.addy_id, </span>
+<a name="listingsgeocodegeocoderb-13"></a><span class="sx">    house_number || ' ' || street || ', ' || city || ' ' || region || ' ' || postcode as freeform</span>
+<a name="listingsgeocodegeocoderb-14"></a><span class="sx">  FROM sampled_addy a</span>
+<a name="listingsgeocodegeocoderb-15"></a><span class="sx">  LEFT JOIN geocoded c ON c.method = 'geocommons' AND c.addy_id = a.addy_id</span>
+<a name="listingsgeocodegeocoderb-16"></a><span class="sx">  WHERE c.addy_id IS NULL;</span>
+<a name="listingsgeocodegeocoderb-17"></a><span class="sx">)</span>
+<a name="listingsgeocodegeocoderb-18"></a>
+<a name="listingsgeocodegeocoderb-19"></a><span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+<a name="listingsgeocodegeocoderb-20"></a><span class="n">result</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+<a name="listingsgeocodegeocoderb-21"></a>    <span class="c1"># puts "%s" % row.values_at('freeform')[0]</span>
+<a name="listingsgeocodegeocoderb-22"></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="s1">'freeform'</span><span class="p">)</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">)</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span>
+<a name="listingsgeocodegeocoderb-23"></a>    <span class="k">if</span> <span class="n">g</span> <span class="o">!=</span> <span class="kp">nil</span>
+<a name="listingsgeocodegeocoderb-24"></a>      <span class="n">g</span><span class="o">[</span><span class="ss">:addy_id</span><span class="o">]</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="s1">'addy_id'</span><span class="p">)</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span>
+<a name="listingsgeocodegeocoderb-25"></a>      <span class="n">geocoded</span> <span class="o">&lt;&lt;</span> <span class="n">g</span>
+<a name="listingsgeocodegeocoderb-26"></a>    <span class="k">end</span>
+<a name="listingsgeocodegeocoderb-27"></a><span class="k">end</span>
+<a name="listingsgeocodegeocoderb-28"></a>
+<a name="listingsgeocodegeocoderb-29"></a><span class="n">conn</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span>
+<a name="listingsgeocodegeocoderb-30"></a>  <span class="s1">'insert'</span><span class="p">,</span>
+<a name="listingsgeocodegeocoderb-31"></a>  <span class="s2">"INSERT INTO geocoded (addy_id, lat, lon, precision, method) "</span><span class="p">\</span>
+<a name="listingsgeocodegeocoderb-32"></a>  <span class="s2">"VALUES ($1, $2, $3, $4, 'geocommons') "</span><span class="p">)</span>
+<a name="listingsgeocodegeocoderb-33"></a>
+<a name="listingsgeocodegeocoderb-34"></a><span class="n">geocoded</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">coded</span><span class="o">|</span>
+<a name="listingsgeocodegeocoderb-35"></a>  <span class="n">conn</span><span class="o">.</span><span class="n">exec_prepared</span><span class="p">(</span><span class="s1">'insert'</span><span class="p">,</span> <span class="o">[</span><span class="n">coded</span><span class="o">[</span><span class="ss">:addy_id</span><span class="o">]</span><span class="p">,</span> <span class="n">coded</span><span class="o">[</span><span class="ss">:lat</span><span class="o">]</span><span class="p">,</span> <span class="n">coded</span><span class="o">[</span><span class="ss">:lon</span><span class="o">]</span><span class="p">,</span> <span class="n">coded</span><span class="o">[</span><span class="ss">:score</span><span class="o">]]</span><span class="p">)</span>
+<a name="listingsgeocodegeocoderb-36"></a><span class="k">end</span>
+<a name="listingsgeocodegeocoderb-37"></a><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></td>
+</tr></table>
+</div>
+        <!--End of body content-->
+
+        <footer id="footer">
+            Contents © 2016         <a href="mailto:dan@danpelota.com">Dan Ball</a> - Powered by         <a href="https://getnikola.com" rel="nofollow">Nikola</a>         
+            
+        </footer>
+</div>
+</div>
+
+
+            <script src="../../assets/js/all-nocdn.js"></script><script>$('a.image-reference:not(.islink) img:not(.islink)').parent().colorbox({rel:"gal",maxWidth:"100%",maxHeight:"100%",scalePhotos:true});</script><!-- fancy dates --><script>
+    moment.locale("en");
+    fancydates(0, "MM/DD/YYYY");
+    </script><!-- end fancy dates --><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-84560292-1', 'auto');
+    ga('send', 'pageview');
+
+    </script>
+</body>
+</html>
