@@ -27,7 +27,27 @@
  </url>
  <url>
   <loc>https://danpelota.com/listings/</loc>
-  <lastmod>2016-09-20T02:25:00Z</lastmod>
+  <lastmod>2016-09-29T15:43:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/listings/geocode/</loc>
+  <lastmod>2016-09-29T17:38:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/listings/geocode/geocode-freeform.sql.html</loc>
+  <lastmod>2016-10-07T15:36:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/listings/geocode/geocode-nominatim.py.html</loc>
+  <lastmod>2016-09-29T17:38:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/listings/geocode/geocode-parsed.sql.html</loc>
+  <lastmod>2016-10-07T15:36:00Z</lastmod>
+ </url>
+ <url>
+  <loc>https://danpelota.com/listings/geocode/geocode.rb.html</loc>
+  <lastmod>2016-09-29T16:19:00Z</lastmod>
  </url>
  <url>
   <loc>https://danpelota.com/posts/geocoder-showdown-part-1/</loc>

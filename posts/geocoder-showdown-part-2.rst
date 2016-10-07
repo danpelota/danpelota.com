@@ -15,6 +15,12 @@ some reference data for evaluation.
 
 .. _Part 1: link:/posts/geocoder-showdown-part-1
 
+First, we'll download, load, and postprocess the OpenAddresses data we're using
+as a reference. Then, we'll pull out a sample of 50,000 records and geocode
+them with each of our geocoders.
+
+The approach I've taken for each is not necessarily the most performant
+
 OpenAddresses Data
 ------------------
 
@@ -106,7 +112,7 @@ to missing data.
     -- Consider "unincorporated" to be a missing city component
     UPDATE addresses SET city = NULL WHERE city = 'Unincorporated';
 
-    UPDATE ADDRESSES
+    UPDATE addresses
     SET components =
         CASE
             -- We won't even try to geocode these
@@ -197,13 +203,15 @@ We'll create a table to hold the results from each geocoder. First, the Tiger ge
 
 .. code-block:: sql
 
-    CREATE TABLE tiger_geocoded (
+    CREATE TABLE geocoded (
         addy_id integer,
         lat float,
         lon float,
         geom geometry('POINT', 4326),
         precision float,
-        method text);
+        method text,
+        UNIQUE(addy_id, method));
+
 
 We have a few options on the granularity of the address components we submit.
 One option is to concatenate all address components into a single freeform
@@ -218,65 +226,48 @@ freeform address string, parse the address into the geocoder's ``norm_addy``
 type, and return the normalized address, the geocoded geometry, and a rating
 representing the estimated quality of the geocode.
 
-.. code-block:: sql
-
-    INSERT INTO tiger_geocoded
-    SELECT
-        addy_id,
-        ST_Y((g.geo).geomout)::numeric,
-        ST_X((g.geo).geomout)::numeric,
-        ST_Transform((g.geo).geomout, 4326),
-        (g.geo).rating,
-        'postgis-freeform'
-    FROM (
-        SELECT
-            addy_id,
-            geocode((house_number || ' ' ||
-                     street || ', ' ||
-                     city || ' ' ||
-                     region || ' ' || postcode),
-                    1) as geo
-        FROM sampled_addy
-        ) g;
+.. listing:: geocode/geocode-freeform.sql sql
 
 Let's try one more time, manually setting the city, state, and zipcode where
 available. We'll still need the geocoder to parse the address so we can extract
 the street number, predirection, street name, postdirection, and unit number.
 
-.. code-block:: sql
+.. listing:: geocode/geocode-parsed.sql sql
 
-    INSERT INTO tiger_geocoded
+Geocoding: The Ruby Geocoder
+----------------------------
+
+.. listing:: geocode/geocode.rb ruby
+
+Geocoding: Nominatim
+--------------------
+
+.. listing:: geocode/geocode-nominatim.py python
+
+
+# select geocode('146 Southwest 169 Avenue, Miramar Pembroke Pines FL');
+# select geocode('146 Southwest 169 Avenue, Miramar Pembroke Pines FL', 1);
+
+Get geocoding errors:
+
+.. code-block:: sql
     SELECT
-        addy_id,
-        ST_Y((g.geo).geomout)::numeric,
-        ST_X((g.geo).geomout)::numeric,
-        ST_Transform((g.geo).geomout, 4326),
-        (g.geo).rating,
-        'postgis-parsed'
-    FROM (
-        SELECT
-            addy_id,
-            geocode(
-                (
-                    (norm).address,
-                    (norm).predirabbrev,
-                    (norm).streetname,
-                    (norm).streettypeabbrev,
-                    (norm).postdirabbrev,
-                    (norm).internal,
-                    city,
-                    'FL',
-                    substr(postcode, 1, 5),
-                    true
-                )::norm_addy, 1) as geo
-        FROM (
-                SELECT
-                    *,
-                    normalize_address(house_number || ' ' ||
-                         street || ', ' ||
-                         city || ' ' ||
-                         region || ' ' || postcode) as norm
-                 FROM sampled_addy
-                 LIMIT 10
-            ) n
-    ) g;
+        a.addy_id,
+        a.house_number,
+        a.street,
+        a.city,
+        a.region,
+        a.postcode,
+        a.components,
+        a.lon as actual_lon,
+        a.lat as actual_lat,
+        a.geom as actual_geom,
+        c.lon as coded_lon,
+        c.lat as coded_lat,
+        c.geom as coded_geom,
+        c.precision,
+        c.method,
+        ST_DistanceSphere(a.geom, c.geom) as error
+    FROM
+        sampled_addy a
+        JOIN geocoded c USING(addy_id);
