@@ -1,7 +1,7 @@
 .. title: Geocoder Showdown Part 2: Geocoding Benchmark Data
 .. slug: geocoder-showdown-part-2
 .. date: 2016-09-23 19:53:44 UTC-04:00
-.. tags: draft
+.. tags:
 .. category: 
 .. link: 
 .. description: 
@@ -11,22 +11,21 @@
 
 In `Part 1`_ I covered the installation and configuration of the PostGIS, Open
 Addresses, and Nominatim geocoders. In this article we'll download and geocode
-some reference data for evaluation.
+some reference data for evaluation. In `Part 3`_ I'll compare the results.
 
 .. _Part 1: link:/posts/geocoder-showdown-part-1
+.. _Part 3: link:/posts/geocoder-showdown-part-3
 
 First, we'll download, load, and postprocess the OpenAddresses data we're using
 as a reference. Then, we'll pull out a sample of 50,000 records and geocode
 them with each of our geocoders.
 
-The approach I've taken for each is not necessarily the most performant
-
 OpenAddresses Data
 ------------------
 
-OpenAddresses.io is an effort to aggregate and standardize a global collection
-of address data. We'll be using the Florida extract of the OpenAddresses.io
-data. Download it to get started.
+OpenAddresses is an effort to aggregate and standardize a global collection
+of address data. We'll be using the Florida extract of the OpenAddresses
+data as our benchmark. Download it to get started.
 
 .. code-block:: bash
 
@@ -53,7 +52,7 @@ Create our table to hold the data:
         hash text);
     EOF
 
-Now copy in all CSV files. There is some overlapping coverage in these files,
+Now load all the CSV files. There is some overlapping coverage in these files
 but we'll deal with that later.
 
 .. code-block:: bash
@@ -73,8 +72,8 @@ Pop open ``psql`` and let's take a look!
     ----------
      20558789
 
-20 million addresses, ripe for geocoding! However, the OpenAddresses data is
-based on aggregated data from public sources, which often incomplete. Let's
+20 million addresses, ripe for geocoding! Unfortunately, the OpenAddresses data
+is based on aggregated data from public sources which is sometimes incomplete. Let's
 check the coverage of the address fields.
 
 .. code-block:: sql
@@ -136,8 +135,8 @@ to missing data.
 Let's create a stratified random sample of these addresses:
 
     * 35,000 (70%) with all address components
-    * 7,500 (15%) with postcode only
-    * 7,500 (15%) with city only
+    * 7,500 (15%) with street + postcode only
+    * 7,500 (15%) with street + city only
 
 .. code-block:: sql
 
@@ -221,7 +220,7 @@ city, state, and zip code components individually. The street number and name
 components still need to be parsed since the unit numbers are often embedded in
 the ``street`` field and predirections are not broken out. We'll try both.
 
-First, using the freeform addresses. The ``geocode`` function will accept a
+First we'll use the freeform addresses. The ``geocode`` function will accept a
 freeform address string, parse the address into the geocoder's ``norm_addy``
 type, and return the normalized address, the geocoded geometry, and a rating
 representing the estimated quality of the geocode.
@@ -234,40 +233,22 @@ the street number, predirection, street name, postdirection, and unit number.
 
 .. listing:: geocode/geocode-parsed.sql sql
 
-Geocoding: The Ruby Geocoder
-----------------------------
+Geocoding: The Geocommons Geocoder::US
+--------------------------------------
 
-.. listing:: geocode/geocode.rb ruby
+Here's a quick ruby script to geocode our benchmark data with the Geocommons
+geocoder (note that I've made no effort to make this efficient):
+
+.. listing:: geocode/geocode-geocommons.rb ruby
 
 Geocoding: Nominatim
 --------------------
 
+And finally, a python script to pull the freeform addresses from the database,
+throw them at our Nominatim endpoint, and insert the results into our
+``geocoded`` table:
+
 .. listing:: geocode/geocode-nominatim.py python
 
+In `Part 3`_ we'll analyze the results.
 
-# select geocode('146 Southwest 169 Avenue, Miramar Pembroke Pines FL');
-# select geocode('146 Southwest 169 Avenue, Miramar Pembroke Pines FL', 1);
-
-Get geocoding errors:
-
-.. code-block:: sql
-    SELECT
-        a.addy_id,
-        a.house_number,
-        a.street,
-        a.city,
-        a.region,
-        a.postcode,
-        a.components,
-        a.lon as actual_lon,
-        a.lat as actual_lat,
-        a.geom as actual_geom,
-        c.lon as coded_lon,
-        c.lat as coded_lat,
-        c.geom as coded_geom,
-        c.precision,
-        c.method,
-        ST_DistanceSphere(a.geom, c.geom) as error
-    FROM
-        sampled_addy a
-        JOIN geocoded c USING(addy_id);

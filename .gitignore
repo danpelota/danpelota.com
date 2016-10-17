@@ -3,3 +3,4 @@ cache/
 .DS_Store
 .doit.db
 __pycache__/
+.ipynb_checkpoints/

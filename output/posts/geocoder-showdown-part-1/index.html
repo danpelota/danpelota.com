@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Geocoder Showdown Part 1: Setup and Installation | danpelota.com</title>
 <link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
 <meta content="#5670d4" name="theme-color">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
 <link rel="canonical" href="https://danpelota.com/posts/geocoder-showdown-part-1/">
 <!--[if lt IE 9]><script src="../../assets/js/html5.js"></script><![endif]--><meta name="author" content="Dan Ball">
+<link rel="next" href="../geocoder-showdown-part-2/" title="Geocoder Showdown Part 2: Geocoding Benchmark Data" type="text/html">
 <meta property="og:site_name" content="danpelota.com">
 <meta property="og:title" content="Geocoder Showdown Part 1: Setup and Installation">
 <meta property="og:url" content="https://danpelota.com/posts/geocoder-showdown-part-1/">
@@ -17,13 +20,13 @@
 Installing the Geocoders
 Installing PostgreSQL 9.5 and PostGIS 2.2
 Configuring the PostGIS Tiger Geocoder
-The Geocommons Geocoder
+The Geocommons Geocoder::US
 Installing Nominatim
 
 
 
 
-Back in 2011, I asked a question on">
+Back in 2011, I asked a questio">
 <meta property="og:type" content="article">
 <meta property="article:published_time" content="2016-09-19T00:00:00-04:00">
 </head>
@@ -32,7 +35,7 @@ Back in 2011, I asked a question on">
 
 <!-- Menubar -->
 
-<nav class="navbar navbar-default navbar-static-top"><div class="container">
+<nav class="navbar navbar-inverse navbar-static-top"><div class="container">
 <!-- This keeps the margins nice -->
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar" aria-controls="bs-navbar" aria-expanded="false">
@@ -106,7 +109,7 @@ Back in 2011, I asked a question on">
 <a class="reference internal" href="#installing-the-geocoders" id="id1">Installing the Geocoders</a><ul>
 <li><a class="reference internal" href="#installing-postgresql-9-5-and-postgis-2-2" id="id2">Installing PostgreSQL 9.5 and PostGIS 2.2</a></li>
 <li><a class="reference internal" href="#configuring-the-postgis-tiger-geocoder" id="id3">Configuring the PostGIS Tiger Geocoder</a></li>
-<li><a class="reference internal" href="#the-geocommons-geocoder" id="id4">The Geocommons Geocoder</a></li>
+<li><a class="reference internal" href="#the-geocommons-geocoder-us" id="id4">The Geocommons Geocoder::US</a></li>
 <li><a class="reference internal" href="#installing-nominatim" id="id5">Installing Nominatim</a></li>
 </ul>
 </li>
@@ -115,19 +118,18 @@ Back in 2011, I asked a question on">
 <p>Back in 2011, I <a class="reference external" href="http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)">asked a question</a> on gis.stackexchange.com regarding the
 accuracy of range-based geocoders that can be installed and run locally. Since
 then, I've leveraged several solutions for the bulk geocoding of millions of
-addresses, including the <a class="reference external" href="http://postgis.net/docs/Geocode.html">PostGIS geocoder</a>, the ruby-based <a class="reference external" href="https://github.com/geocommons/geocoder/">Geocommons
-Geocoder</a>,  and <a class="reference external" href="https://smartystreets.com/">SmartyStreets</a> (which doesn't run locally but has no trouble
-geocoding millions of addresses per hour). I haven't come across a
-thorough comparison of the setup, usage, and performance of these
-geocoders in the meantime, so I figured I'd evaluate them here.</p>
+addresses, including the <a class="reference external" href="http://postgis.net/docs/Geocode.html">PostGIS geocoder</a> and the ruby-based <a class="reference external" href="https://github.com/geocommons/geocoder/">Geocommons
+Geocoder::US</a>. I haven't come across a thorough comparison of the setup, usage,
+and performance of these geocoders in the meantime, so I figured I'd evaluate
+them here.</p>
 <p>In Part 1 I'll cover the installation and configuration of the PostGIS Tiger
 geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
 web services that expose each through APIs, I wanted to document the setup and
 installation of each for offline processing.</p>
-<p>In <a class="reference external" href="/posts/geocoder-showdown-part-2">Part 2</a> I'll download, prep, and geocode a reference dataset to use as a
-benchmark: the Florida extract of the <a class="reference external" href="http://openaddresses.io">openaddresses.io</a> database.</p>
-<p>In Part 3, we'll take a look at the accuracy of each geocoder against our
-reference data set.</p>
+<p>In <a class="reference external" href="/posts/geocoder-showdown-part-2">Part 2</a> I'll download, prepare, and geocode a reference dataset to use as
+a benchmark: the Florida extract of the <a class="reference external" href="http://openaddresses.io">OpenAddresses</a> database.</p>
+<p>In <a class="reference external" href="/posts/geocoder-showdown-part-3">Part 3</a> I'll evaluate the accuracy of each geocoder against our reference
+data set.</p>
 <div class="section" id="installing-the-geocoders">
 <h2><a class="toc-backref" href="#id1">Installing the Geocoders</a></h2>
 <p>I'll install and evaluate the geocoders on an <tt class="docutils literal">m4.xlarge</tt> AWS EC2 instance
@@ -136,242 +138,262 @@ with 16GB of memory and a 50GB SSD, running the Ubuntu 16.04 LTS AMI
 <div class="section" id="installing-postgresql-9-5-and-postgis-2-2">
 <h3><a class="toc-backref" href="#id2">Installing PostgreSQL 9.5 and PostGIS 2.2</a></h3>
 <p>First we'll set the following PostgreSQL environment variables for convenience.</p>
-<pre class="code bash"><a name="rest_code_eab3921cb662441e9a3ddbba0b5d0cd9-1"></a><span class="nb">export</span> <span class="nv">PGDATABASE</span><span class="o">=</span>geocoder
-<a name="rest_code_eab3921cb662441e9a3ddbba0b5d0cd9-2"></a><span class="nb">export</span> <span class="nv">PGUSER</span><span class="o">=</span>postgres
-</pre>
-<p>Next, add the PostgreSQL apt repo and key.</p>
-<pre class="code bash"><a name="rest_code_d45933dfa53b4217a6829155505bcfd1-1"></a>sudo add-apt-repository <span class="se">\</span>
-<a name="rest_code_d45933dfa53b4217a6829155505bcfd1-2"></a>    <span class="s2">"deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"</span>
-<a name="rest_code_d45933dfa53b4217a6829155505bcfd1-3"></a>wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc <span class="p">|</span> <span class="se">\</span>
-<a name="rest_code_d45933dfa53b4217a6829155505bcfd1-4"></a>    sudo apt-key add -
-<a name="rest_code_d45933dfa53b4217a6829155505bcfd1-5"></a>sudo apt-get update
+<pre class="code bash"><a name="rest_code_fbaf4196e6e4478888e19040665130b3-1"></a><span class="nb">export</span> <span class="nv">PGDATABASE</span><span class="o">=</span>geocoder
+<a name="rest_code_fbaf4196e6e4478888e19040665130b3-2"></a><span class="nb">export</span> <span class="nv">PGUSER</span><span class="o">=</span>postgres
 </pre>
 <p>Install PostgreSQL 9.5 and PostGIS 2.2:</p>
-<pre class="code bash"><a name="rest_code_d5b5ae886f174f38bb85c71e73ccd1b3-1"></a>sudo apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2 <span class="se">\</span>
-<a name="rest_code_d5b5ae886f174f38bb85c71e73ccd1b3-2"></a>    postgresql-server-dev-9.5
-<a name="rest_code_d5b5ae886f174f38bb85c71e73ccd1b3-3"></a><span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="s1">'/usr/lib/postgresql/9.5/bin/'</span>:<span class="nv">$PATH</span>
+<pre class="code bash"><a name="rest_code_406654f11cc84ecdb70df87f92e84afd-1"></a>sudo apt-get install -y postgresql-9.5 postgresql-9.5-postgis-2.2 <span class="se">\</span>
+<a name="rest_code_406654f11cc84ecdb70df87f92e84afd-2"></a>    postgresql-server-dev-9.5
+<a name="rest_code_406654f11cc84ecdb70df87f92e84afd-3"></a><span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="s1">'/usr/lib/postgresql/9.5/bin/'</span>:<span class="nv">$PATH</span>
 </pre>
 <p>The PostgreSQL APT repository doesn't package <tt class="docutils literal">shp2pgsql</tt> anymore, so install
 it from the Ubuntu postgis repository:</p>
-<pre class="code bash"><a name="rest_code_80acaa18e2de499f8dcc2eb46447723c-1"></a>sudo apt-get install postgis
+<pre class="code bash"><a name="rest_code_90d9eea3418044b2a03339089706aabd-1"></a>sudo apt-get install postgis
 </pre>
 <p>You'll want to edit the PostgreSQL config file for optimum performance while
 bulk-loading data (<tt class="docutils literal">/etc/postgresql/9.5/main/postgresql.conf</tt> on Ubuntu) .
 Here's how I tuned my PostgreSQL cluster running on an instance with 16GB of
 RAM:</p>
-<pre class="code ini"><a name="rest_code_6d77eb79d8c44a5aa18a106457699266-1"></a><span class="na">shared_buffers</span> <span class="o">=</span> <span class="s">4GB</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-2"></a><span class="na">work_mem</span> <span class="o">=</span> <span class="s">50MB</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-3"></a><span class="na">maintenance_work_mem</span> <span class="o">=</span> <span class="s">4GB</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-4"></a><span class="na">synchronous_commit</span> <span class="o">=</span> <span class="s">off</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-5"></a><span class="na">checkpoint_timeout</span> <span class="o">=</span> <span class="s">10min</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-6"></a><span class="na">checkpoint_completion_target</span> <span class="o">=</span> <span class="s">0.9</span>
-<a name="rest_code_6d77eb79d8c44a5aa18a106457699266-7"></a><span class="na">effective_cache_size</span> <span class="o">=</span> <span class="s">12GB</span>
+<pre class="code ini"><a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-1"></a><span class="na">shared_buffers</span> <span class="o">=</span> <span class="s">4GB</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-2"></a><span class="na">work_mem</span> <span class="o">=</span> <span class="s">50MB</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-3"></a><span class="na">maintenance_work_mem</span> <span class="o">=</span> <span class="s">4GB</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-4"></a><span class="na">synchronous_commit</span> <span class="o">=</span> <span class="s">off</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-5"></a><span class="na">checkpoint_timeout</span> <span class="o">=</span> <span class="s">10min</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-6"></a><span class="na">checkpoint_completion_target</span> <span class="o">=</span> <span class="s">0.9</span>
+<a name="rest_code_fdd2d66143314e32a1b4f8d41eeff871-7"></a><span class="na">effective_cache_size</span> <span class="o">=</span> <span class="s">12GB</span>
 </pre>
 <p>I've also set:</p>
-<pre class="code ini"><a name="rest_code_da9d5dbace8c477abeb5f458ef08e0e2-1"></a><span class="na">fsync</span> <span class="o">=</span> <span class="s">off</span>
-<a name="rest_code_da9d5dbace8c477abeb5f458ef08e0e2-2"></a><span class="na">full_page_writes</span> <span class="o">=</span> <span class="s">off</span>
+<pre class="code ini"><a name="rest_code_d750262daa824adaab04971f0cce4a49-1"></a><span class="na">fsync</span> <span class="o">=</span> <span class="s">off</span>
+<a name="rest_code_d750262daa824adaab04971f0cce4a49-2"></a><span class="na">full_page_writes</span> <span class="o">=</span> <span class="s">off</span>
 </pre>
 <p>Be sure to turn these on after the data has been loaded, or you'll risk not
 only data <em>loss</em> in the event of a crash, but data <em>corruption</em>.</p>
 <p>Also, before connecting to our database, you'll need to edit the <tt class="docutils literal">pg_hba.conf</tt>
-file to <tt class="docutils literal">trust</tt> local connections.</p>
+file to <tt class="docutils literal">trust</tt> local connections. The default location on Ubuntu is
+<tt class="docutils literal">/etc/postgresql/9.5/main/pg_hba.conf</tt></p>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt class="docutils">&lt;string&gt;</tt>, line 93)</p>
+<p>Cannot find pygments lexer for language ""</p>
+<pre class="literal-block">
+.. code-block:: 
+
+    # "local" is for Unix domain socket connections only
+    local   all             all                                     trust
+    # IPv4 local connections:
+    host    all             all             127.0.0.1/32            trust
+
+</pre>
+</div>
+<p>Restart Postgres with <tt class="docutils literal">sudo service postgresql restart</tt> and you should be
+able to connect with <cite>psql</cite>:</p>
+<pre class="code bash"><a name="rest_code_2c0da01c0a5247829245ab1375e9a6ad-1"></a>$ psql
+<a name="rest_code_2c0da01c0a5247829245ab1375e9a6ad-2"></a>psql <span class="o">(</span>9.5.4<span class="o">)</span>
+<a name="rest_code_2c0da01c0a5247829245ab1375e9a6ad-3"></a>Type <span class="s2">"help"</span> <span class="k">for</span> help.
+<a name="rest_code_2c0da01c0a5247829245ab1375e9a6ad-4"></a>
+<a name="rest_code_2c0da01c0a5247829245ab1375e9a6ad-5"></a><span class="nv">geocoder</span><span class="o">=</span><span class="c1">#</span>
+</pre>
 </div>
 <div class="section" id="configuring-the-postgis-tiger-geocoder">
 <h3><a class="toc-backref" href="#id3">Configuring the PostGIS Tiger Geocoder</a></h3>
 <p>Create our PostGIS-enabled database and install the geocoder.</p>
-<pre class="code bash"><a name="rest_code_3f9c7e61e51c46638646037da18523eb-1"></a>createdb
-<a name="rest_code_3f9c7e61e51c46638646037da18523eb-2"></a>psql -c <span class="s2">"CREATE EXTENSION postgis;"</span>
-<a name="rest_code_3f9c7e61e51c46638646037da18523eb-3"></a>psql -c <span class="s2">"CREATE EXTENSION fuzzystrmatch;"</span>
-<a name="rest_code_3f9c7e61e51c46638646037da18523eb-4"></a>psql -c <span class="s2">"CREATE EXTENSION address_standardizer;"</span>
-<a name="rest_code_3f9c7e61e51c46638646037da18523eb-5"></a>psql -c <span class="s2">"CREATE EXTENSION postgis_tiger_geocoder;"</span>
+<pre class="code bash"><a name="rest_code_2683b19f5bde431ebd720d9f7e7eea32-1"></a>createdb
+<a name="rest_code_2683b19f5bde431ebd720d9f7e7eea32-2"></a>psql -c <span class="s2">"CREATE EXTENSION postgis;"</span>
+<a name="rest_code_2683b19f5bde431ebd720d9f7e7eea32-3"></a>psql -c <span class="s2">"CREATE EXTENSION fuzzystrmatch;"</span>
+<a name="rest_code_2683b19f5bde431ebd720d9f7e7eea32-4"></a>psql -c <span class="s2">"CREATE EXTENSION address_standardizer;"</span>
+<a name="rest_code_2683b19f5bde431ebd720d9f7e7eea32-5"></a>psql -c <span class="s2">"CREATE EXTENSION postgis_tiger_geocoder;"</span>
 </pre>
 <p>Now we'll generate and run the scripts that download and process the FL TIGER
 data, as well as the national state and county lookup tables needed by the geocoder.</p>
-<pre class="code bash"><a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-1"></a>sudo apt-get install unzip
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-2"></a>
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-3"></a><span class="nb">cd</span> ~
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-4"></a>sudo mkdir /gisdata
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-5"></a>sudo chown ubuntu /gisdata
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-6"></a>psql -t -c <span class="s2">"SELECT Loader_Generate_Script(ARRAY['FL'], 'sh');"</span> -o import-fl.sh --no-align
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-7"></a>sh import-fl.sh
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-8"></a><span class="c1"># Go for a long walk</span>
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-9"></a>psql -t -c <span class="s2">"SELECT loader_generate_nation_script('sh');"</span> -o import-nation.sh --no-align
-<a name="rest_code_ac03163bd8cf4a5cb478099d162dc531-10"></a>sh import-nation.sh
+<pre class="code bash"><a name="rest_code_3905a167eab3436b9c2185666e389b00-1"></a>sudo apt-get install unzip
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-2"></a>
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-3"></a><span class="nb">cd</span> ~
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-4"></a>sudo mkdir /gisdata
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-5"></a>sudo chown ubuntu /gisdata
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-6"></a>psql -t -c <span class="s2">"SELECT Loader_Generate_Script(ARRAY['FL'], 'sh');"</span> -o import-fl.sh --no-align
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-7"></a>sh import-fl.sh
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-8"></a><span class="c1"># Go for a long walk</span>
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-9"></a>psql -t -c <span class="s2">"SELECT loader_generate_nation_script('sh');"</span> -o import-nation.sh --no-align
+<a name="rest_code_3905a167eab3436b9c2185666e389b00-10"></a>sh import-nation.sh
 </pre>
 <p>Just for good measure:</p>
-<pre class="code bash"><a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-1"></a>psql -c <span class="s2">"SELECT install_missing_indexes();"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-2"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.addr;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-3"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.edges;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-4"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.faces;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-5"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.featnames;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-6"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.place;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-7"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.cousub;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-8"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.county;"</span>
-<a name="rest_code_38ecb86764e34abe8efe0f782a0f4032-9"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.state;"</span>
+<pre class="code bash"><a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-1"></a>psql -c <span class="s2">"SELECT install_missing_indexes();"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-2"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.addr;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-3"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.edges;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-4"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.faces;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-5"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.featnames;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-6"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.place;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-7"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.cousub;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-8"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.county;"</span>
+<a name="rest_code_e1ff17f4c75b4f43ac74ae49551d2bcf-9"></a>psql -c <span class="s2">"vacuum analyze verbose tiger.state;"</span>
 </pre>
 <p>Check that the geocoder and all necessary data was installed correctly.</p>
-<pre class="code bash"><a name="rest_code_f84aeb1539b64e5cbdbc05834f8df8bc-1"></a>psql -c <span class="s2">"SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tallahassee, FL 32399', 1);"</span>
-<a name="rest_code_f84aeb1539b64e5cbdbc05834f8df8bc-2"></a>
-<a name="rest_code_f84aeb1539b64e5cbdbc05834f8df8bc-3"></a>       st_x        <span class="p">|</span>       st_y
-<a name="rest_code_f84aeb1539b64e5cbdbc05834f8df8bc-4"></a>-------------------+------------------
-<a name="rest_code_f84aeb1539b64e5cbdbc05834f8df8bc-5"></a> -84.2807360244119 <span class="p">|</span> 30.4381207774995
+<pre class="code bash"><a name="rest_code_25931a40231d4f909e21129793c28425-1"></a>psql -c <span class="s2">"SELECT st_x(geomout), st_y(geomout) FROM geocode('400 S Monroe St, Tallahassee, FL 32399', 1);"</span>
+<a name="rest_code_25931a40231d4f909e21129793c28425-2"></a>
+<a name="rest_code_25931a40231d4f909e21129793c28425-3"></a>       st_x        <span class="p">|</span>       st_y
+<a name="rest_code_25931a40231d4f909e21129793c28425-4"></a>-------------------+------------------
+<a name="rest_code_25931a40231d4f909e21129793c28425-5"></a> -84.2807360244119 <span class="p">|</span> 30.4381207774995
 </pre>
 <p>With that, our PostGIS TIGER geocoder is installed and ready to go.</p>
 </div>
-<div class="section" id="the-geocommons-geocoder">
-<h3><a class="toc-backref" href="#id4">The Geocommons Geocoder</a></h3>
+<div class="section" id="the-geocommons-geocoder-us">
+<h3><a class="toc-backref" href="#id4">The Geocommons Geocoder::US</a></h3>
 <p>Install some dependencies:</p>
-<pre class="code bash"><a name="rest_code_1ef470c99aa4463aa6d27603d6ed32f1-1"></a>apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
-<a name="rest_code_1ef470c99aa4463aa6d27603d6ed32f1-2"></a>gem install text sqlite3 fastercsv
+<pre class="code bash"><a name="rest_code_8b52757504784ae482329d069d77b13d-1"></a>apt-get install -y ruby-dev sqlite3 libsqlite3-dev flex
+<a name="rest_code_8b52757504784ae482329d069d77b13d-2"></a>gem install text sqlite3 fastercsv
 </pre>
 <p>Grab the latest version of the geocommons geocoder and install it:</p>
-<pre class="code bash"><a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-1"></a><span class="nb">cd</span> ~
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-2"></a>apt-get install git flex ruby-dev
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-3"></a>git clone git://github.com/geocommons/geocoder.git
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-4"></a><span class="nb">cd</span> geocoder
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-5"></a>make
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-6"></a>make install
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-7"></a>gem install Geocoder-US-2.0.4.gem
-<a name="rest_code_c9c52ee8b72640acb86c27016c5fe6fe-8"></a>gem install text
+<pre class="code bash"><a name="rest_code_85633bf147e84b23bba5b464f63b77c4-1"></a><span class="nb">cd</span> ~
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-2"></a>apt-get install git flex ruby-dev
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-3"></a>git clone git://github.com/geocommons/geocoder.git
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-4"></a><span class="nb">cd</span> geocoder
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-5"></a>make
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-6"></a>make install
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-7"></a>gem install Geocoder-US-2.0.4.gem
+<a name="rest_code_85633bf147e84b23bba5b464f63b77c4-8"></a>gem install text
 </pre>
 <p>We can use the 2015 Tiger data we downloaded previously:</p>
-<pre class="code bash"><a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-1"></a>mkdir data
-<a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-2"></a>mkdir database
-<a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-3"></a><span class="nb">cd</span> data
-<a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-4"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/ADDR/*.zip ./
-<a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-5"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/FEATNAMES/*.zip ./
-<a name="rest_code_fa6f72eb623041ab9e9d19f154d322f9-6"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/*.zip ./
+<pre class="code bash"><a name="rest_code_d07ab88982ac49e0a688bc595746b217-1"></a>mkdir data
+<a name="rest_code_d07ab88982ac49e0a688bc595746b217-2"></a>mkdir database
+<a name="rest_code_d07ab88982ac49e0a688bc595746b217-3"></a><span class="nb">cd</span> data
+<a name="rest_code_d07ab88982ac49e0a688bc595746b217-4"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/ADDR/*.zip ./
+<a name="rest_code_d07ab88982ac49e0a688bc595746b217-5"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/FEATNAMES/*.zip ./
+<a name="rest_code_d07ab88982ac49e0a688bc595746b217-6"></a>cp /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/*.zip ./
 </pre>
 <p>Create the geocoder database. Note that this must be executed from within the
 <tt class="docutils literal">build</tt> directory since it has a relative path reference to
 <tt class="docutils literal"><span class="pre">../src/shp2sqlite/shp2sqlite</span></tt>:</p>
-<pre class="code bash"><a name="rest_code_fc219aa609b84983a0122d7120597a1f-1"></a><span class="nb">cd</span> ../build
-<a name="rest_code_fc219aa609b84983a0122d7120597a1f-2"></a>./tiger_import ../database/geocoder.db ../data
-<a name="rest_code_fc219aa609b84983a0122d7120597a1f-3"></a>sh build_indexes ../database/geocoder.db
-<a name="rest_code_fc219aa609b84983a0122d7120597a1f-4"></a><span class="nb">cd</span> ..
-<a name="rest_code_fc219aa609b84983a0122d7120597a1f-5"></a>bin/rebuild_metaphones database/geocoder.db
-<a name="rest_code_fc219aa609b84983a0122d7120597a1f-6"></a>sudo sh build/rebuild_cluster database/geocoder.db
+<pre class="code bash"><a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-1"></a><span class="nb">cd</span> ../build
+<a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-2"></a>./tiger_import ../database/geocoder.db ../data
+<a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-3"></a>sh build_indexes ../database/geocoder.db
+<a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-4"></a><span class="nb">cd</span> ..
+<a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-5"></a>bin/rebuild_metaphones database/geocoder.db
+<a name="rest_code_60d42bf9ac434ecc8f5ee26ec209717c-6"></a>sudo sh build/rebuild_cluster database/geocoder.db
 </pre>
 <p>To test the geocommons geocoder, fire up an irb session and geocode a test
 address:</p>
-<pre class="code ruby"><a name="rest_code_a4e374872a684e5c99118cc394ac43cd-1"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">001</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="nb">require</span> <span class="s1">'geocoder/us'</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-2"></a><span class="o">=&gt;</span> <span class="kp">true</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-3"></a>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-4"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">002</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">db</span> <span class="o">=</span> <span class="no">Geocoder</span><span class="o">::</span><span class="no">US</span><span class="o">::</span><span class="no">Database</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">'database/geocoder.db'</span><span class="p">)</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-5"></a><span class="o">=&gt;</span> <span class="c1">#&lt;Geocoder::US::Database:0x00000001cc1248 @db=#&lt;SQLite3::Database:0x00000001cc1158&gt;, @st={}, @dbtype=1, @debug=false, @threadsafe=false&gt;</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-6"></a>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-7"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">003</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="nb">p</span> <span class="n">db</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="s2">"400 S Monroe St, Tallahassee, FL 32399"</span><span class="p">)</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-8"></a><span class="o">[</span><span class="p">{</span><span class="ss">:street</span><span class="o">=&gt;</span><span class="s2">"S Monroe St"</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-9"></a>  <span class="ss">:zip</span><span class="o">=&gt;</span><span class="s2">"32301"</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-10"></a>  <span class="ss">:score</span><span class="o">=&gt;</span><span class="mi">0</span><span class="o">.</span><span class="mi">805</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-11"></a>  <span class="ss">:prenum</span><span class="o">=&gt;</span><span class="s2">""</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-12"></a>  <span class="ss">:number</span><span class="o">=&gt;</span><span class="s2">"400"</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-13"></a>  <span class="ss">:precision</span><span class="o">=&gt;</span><span class="ss">:range</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-14"></a>  <span class="ss">:lon</span><span class="o">=&gt;-</span><span class="mi">84</span><span class="o">.</span><span class="mi">280632</span><span class="p">,</span>
-<a name="rest_code_a4e374872a684e5c99118cc394ac43cd-15"></a>  <span class="ss">:lat</span><span class="o">=&gt;</span><span class="mi">30</span><span class="o">.</span><span class="mi">438122</span><span class="p">}</span><span class="o">]</span>
+<pre class="code ruby"><a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-1"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">001</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="nb">require</span> <span class="s1">'geocoder/us'</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-2"></a><span class="o">=&gt;</span> <span class="kp">true</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-3"></a>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-4"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">002</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">db</span> <span class="o">=</span> <span class="no">Geocoder</span><span class="o">::</span><span class="no">US</span><span class="o">::</span><span class="no">Database</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">'database/geocoder.db'</span><span class="p">)</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-5"></a><span class="o">=&gt;</span> <span class="c1">#&lt;Geocoder::US::Database:0x00000001cc1248 @db=#&lt;SQLite3::Database:0x00000001cc1158&gt;, @st={}, @dbtype=1, @debug=false, @threadsafe=false&gt;</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-6"></a>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-7"></a><span class="n">irb</span><span class="p">(</span><span class="n">main</span><span class="p">):</span><span class="mo">003</span><span class="p">:</span><span class="mi">0</span><span class="o">&gt;</span> <span class="nb">p</span> <span class="n">db</span><span class="o">.</span><span class="n">geocode</span><span class="p">(</span><span class="s2">"400 S Monroe St, Tallahassee, FL 32399"</span><span class="p">)</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-8"></a><span class="o">[</span><span class="p">{</span><span class="ss">:street</span><span class="o">=&gt;</span><span class="s2">"S Monroe St"</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-9"></a>  <span class="ss">:zip</span><span class="o">=&gt;</span><span class="s2">"32301"</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-10"></a>  <span class="ss">:score</span><span class="o">=&gt;</span><span class="mi">0</span><span class="o">.</span><span class="mi">805</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-11"></a>  <span class="ss">:prenum</span><span class="o">=&gt;</span><span class="s2">""</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-12"></a>  <span class="ss">:number</span><span class="o">=&gt;</span><span class="s2">"400"</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-13"></a>  <span class="ss">:precision</span><span class="o">=&gt;</span><span class="ss">:range</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-14"></a>  <span class="ss">:lon</span><span class="o">=&gt;-</span><span class="mi">84</span><span class="o">.</span><span class="mi">280632</span><span class="p">,</span>
+<a name="rest_code_f38867bc3cfa4978b6ebb1099de6941e-15"></a>  <span class="ss">:lat</span><span class="o">=&gt;</span><span class="mi">30</span><span class="o">.</span><span class="mi">438122</span><span class="p">}</span><span class="o">]</span>
 </pre>
 </div>
 <div class="section" id="installing-nominatim">
 <h3><a class="toc-backref" href="#id5">Installing Nominatim</a></h3>
 <p>Install the Nominatim dependencies (some of these were installed in previous
-steps, but are included here for completeness):</p>
-<pre class="code bash"><a name="rest_code_4e9b7621952045c890f7e93da3bb2436-1"></a>sudo apt-get install -y build-essential cmake g++ libboost-dev <span class="se">\</span>
-<a name="rest_code_4e9b7621952045c890f7e93da3bb2436-2"></a>    libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev <span class="se">\</span>
-<a name="rest_code_4e9b7621952045c890f7e93da3bb2436-3"></a>    libxml2-dev libbz2-dev libpq-dev libgeos-dev libgeos++-dev <span class="se">\</span>
-<a name="rest_code_4e9b7621952045c890f7e93da3bb2436-4"></a>    libproj-dev postgresql-server-dev-9.5 postgresql-9.5-postgis-2.2 <span class="se">\</span>
-<a name="rest_code_4e9b7621952045c890f7e93da3bb2436-5"></a>    postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php <span class="se">\</span>
-<a name="rest_code_4e9b7621952045c890f7e93da3bb2436-6"></a>    php-pear php-db git
+steps but are included here for completeness):</p>
+<pre class="code bash"><a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-1"></a>sudo apt-get install -y build-essential cmake g++ libboost-dev <span class="se">\</span>
+<a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-2"></a>    libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev <span class="se">\</span>
+<a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-3"></a>    libxml2-dev libbz2-dev libpq-dev libgeos-dev libgeos++-dev <span class="se">\</span>
+<a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-4"></a>    libproj-dev postgresql-server-dev-9.5 postgresql-9.5-postgis-2.2 <span class="se">\</span>
+<a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-5"></a>    postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php <span class="se">\</span>
+<a name="rest_code_5c657f8b193c43b192bbd9e61a47436d-6"></a>    php-pear php-db git
 </pre>
-<p>We'll use separate linux user accounts for nominatim:</p>
-<pre class="code bash"><a name="rest_code_cc629c656a744306abcd72a47069c017-1"></a>sudo useradd -d /srv/nominatim -s /bin/bash -m nominatim
-<a name="rest_code_cc629c656a744306abcd72a47069c017-2"></a>
-<a name="rest_code_cc629c656a744306abcd72a47069c017-3"></a><span class="nb">export</span> <span class="nv">USERNAME</span><span class="o">=</span>nominatim
-<a name="rest_code_cc629c656a744306abcd72a47069c017-4"></a><span class="nb">export</span> <span class="nv">USERHOME</span><span class="o">=</span>/srv/nominatim
-<a name="rest_code_cc629c656a744306abcd72a47069c017-5"></a>sudo chmod a+wx <span class="nv">$USERHOME</span>
-<a name="rest_code_cc629c656a744306abcd72a47069c017-6"></a>
-<a name="rest_code_cc629c656a744306abcd72a47069c017-7"></a>createuser -s <span class="nv">$USERNAME</span>
-<a name="rest_code_cc629c656a744306abcd72a47069c017-8"></a>createuser -s www-data
+<p>We'll use a separate linux user account for nominatim:</p>
+<pre class="code bash"><a name="rest_code_545e3bb0a265482ab084ad034acc52fc-1"></a>sudo useradd -d /srv/nominatim -s /bin/bash -m nominatim
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-2"></a>
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-3"></a><span class="nb">export</span> <span class="nv">USERNAME</span><span class="o">=</span>nominatim
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-4"></a><span class="nb">export</span> <span class="nv">USERHOME</span><span class="o">=</span>/srv/nominatim
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-5"></a>sudo chmod a+wx <span class="nv">$USERHOME</span>
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-6"></a>
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-7"></a>createuser -s <span class="nv">$USERNAME</span>
+<a name="rest_code_545e3bb0a265482ab084ad034acc52fc-8"></a>createuser -s www-data
 </pre>
 <p>Install Nominatim:</p>
-<pre class="code bash"><a name="rest_code_ecfa6b4c6c154bc29c115768468f8513-1"></a><span class="nb">cd</span> <span class="nv">$USERHOME</span>
-<a name="rest_code_ecfa6b4c6c154bc29c115768468f8513-2"></a>git clone --recursive git://github.com/twain47/Nominatim.git
-<a name="rest_code_ecfa6b4c6c154bc29c115768468f8513-3"></a><span class="nb">cd</span> Nominatim
+<pre class="code bash"><a name="rest_code_9813b10babca44b8a7ba0355383fece5-1"></a><span class="nb">cd</span> <span class="nv">$USERHOME</span>
+<a name="rest_code_9813b10babca44b8a7ba0355383fece5-2"></a>git clone --recursive git://github.com/twain47/Nominatim.git
+<a name="rest_code_9813b10babca44b8a7ba0355383fece5-3"></a><span class="nb">cd</span> Nominatim
 </pre>
 <p>Building must happen within the <tt class="docutils literal">build</tt> directory:</p>
-<pre class="code bash"><a name="rest_code_8c5d84efec6c40479dfc76f3ecde60ff-1"></a>mkdir build
-<a name="rest_code_8c5d84efec6c40479dfc76f3ecde60ff-2"></a><span class="nb">cd</span> build
-<a name="rest_code_8c5d84efec6c40479dfc76f3ecde60ff-3"></a>cmake <span class="nv">$USERHOME</span>/Nominatim
-<a name="rest_code_8c5d84efec6c40479dfc76f3ecde60ff-4"></a>make
+<pre class="code bash"><a name="rest_code_034a6827537d46c4856b8e716a866cdd-1"></a>mkdir build
+<a name="rest_code_034a6827537d46c4856b8e716a866cdd-2"></a><span class="nb">cd</span> build
+<a name="rest_code_034a6827537d46c4856b8e716a866cdd-3"></a>cmake <span class="nv">$USERHOME</span>/Nominatim
+<a name="rest_code_034a6827537d46c4856b8e716a866cdd-4"></a>make
 </pre>
 <p>Setup the apache webserver:</p>
-<pre class="code bash"><a name="rest_code_b14f47697af346db9218c28fce43ecb7-1"></a>sudo tee /etc/apache2/conf-available/nominatim.conf <span class="s">&lt;&lt; EOFAPACHECONF</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-2"></a><span class="s">&lt;Directory "$USERHOME/Nominatim/build/website"&gt;</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-3"></a><span class="s">  Options FollowSymLinks MultiViews</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-4"></a><span class="s">  AddType text/html   .php</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-5"></a><span class="s">  Require all granted</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-6"></a><span class="s">&lt;/Directory&gt;</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-7"></a>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-8"></a><span class="s">Alias /nominatim $USERHOME/Nominatim/build/website</span>
-<a name="rest_code_b14f47697af346db9218c28fce43ecb7-9"></a><span class="s">EOFAPACHECONF</span>
+<pre class="code bash"><a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-1"></a>sudo tee /etc/apache2/conf-available/nominatim.conf <span class="s">&lt;&lt; EOFAPACHECONF</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-2"></a><span class="s">&lt;Directory "$USERHOME/Nominatim/build/website"&gt;</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-3"></a><span class="s">  Options FollowSymLinks MultiViews</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-4"></a><span class="s">  AddType text/html   .php</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-5"></a><span class="s">  Require all granted</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-6"></a><span class="s">&lt;/Directory&gt;</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-7"></a>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-8"></a><span class="s">Alias /nominatim $USERHOME/Nominatim/build/website</span>
+<a name="rest_code_d6ba71c1710845e985bea86d8496d8ed-9"></a><span class="s">EOFAPACHECONF</span>
 </pre>
 <p>Enable the configuration and restart apache:</p>
-<pre class="code bash"><a name="rest_code_b4399dc2a4d34e29a9266bb4efe8720e-1"></a>sudo a2enconf nominatim
-<a name="rest_code_b4399dc2a4d34e29a9266bb4efe8720e-2"></a>sudo systemctl restart apache2
+<pre class="code bash"><a name="rest_code_efa3e238beff45a08cc42465fb651049-1"></a>sudo a2enconf nominatim
+<a name="rest_code_efa3e238beff45a08cc42465fb651049-2"></a>sudo systemctl restart apache2
 </pre>
 <p>Update the nominatim php settings (<tt class="docutils literal">settings/settings.php</tt>) to reflect our
 version of PostgreSQL, PostGIS, and our local website URL:</p>
-<pre class="code php"><a name="rest_code_b7b12bd201fb4fcaae8c49ce5abede7a-1"></a><span class="x">// Software versions</span>
-<a name="rest_code_b7b12bd201fb4fcaae8c49ce5abede7a-2"></a><span class="x">@define('CONST_Database_DSN', 'pgsql://postgres@localhost/nominatim');</span>
-<a name="rest_code_b7b12bd201fb4fcaae8c49ce5abede7a-3"></a>
-<a name="rest_code_b7b12bd201fb4fcaae8c49ce5abede7a-4"></a><span class="x">// Website settings</span>
-<a name="rest_code_b7b12bd201fb4fcaae8c49ce5abede7a-5"></a><span class="x">@define('CONST_Website_BaseURL', '/nominatim/');</span>
+<pre class="code php"><a name="rest_code_d90812313fe0435e9c11efa0a56149fc-1"></a><span class="x">// Software versions</span>
+<a name="rest_code_d90812313fe0435e9c11efa0a56149fc-2"></a><span class="x">@define('CONST_Database_DSN', 'pgsql://postgres@localhost/nominatim');</span>
+<a name="rest_code_d90812313fe0435e9c11efa0a56149fc-3"></a>
+<a name="rest_code_d90812313fe0435e9c11efa0a56149fc-4"></a><span class="x">// Website settings</span>
+<a name="rest_code_d90812313fe0435e9c11efa0a56149fc-5"></a><span class="x">@define('CONST_Website_BaseURL', '/nominatim/');</span>
 </pre>
 <p>Now that Nominatim is installed and configured, we need to download and process
 the Florida extract of the OpenStreetMap data.</p>
-<pre class="code bash"><a name="rest_code_a20dcadfbf814bae872a0d60db0f393a-1"></a>wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
-<a name="rest_code_a20dcadfbf814bae872a0d60db0f393a-2"></a>./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
+<pre class="code bash"><a name="rest_code_6a4553842af7494c94483444cbe3d1cc-1"></a>wget -P /gisdata/ http://download.geofabrik.de/north-america/us/florida-latest.osm.pbf
+<a name="rest_code_6a4553842af7494c94483444cbe3d1cc-2"></a>./utils/setup.php --osm-file /gisdata/florida-latest.osm.pbf --all
 </pre>
 <p>At this point, you should be able to point your browser to
 <tt class="docutils literal"><span class="pre">http://localhost/nominatim/status.php</span></tt> and get a page with the text "OK".</p>
 <p>Nominatim can use TIGER address data to supplement the OSM house number data.
 Luckily, we already have the TIGER EDGE data downloaded. We'll need to convert
 the data to SQL to use it:</p>
-<pre class="code bash"><a name="rest_code_96fbdf6c38974a449a474c1623608312-1"></a>sudo apt-get install python-gdal
-<a name="rest_code_96fbdf6c38974a449a474c1623608312-2"></a>sudo apt-get install gdal-bin
-<a name="rest_code_96fbdf6c38974a449a474c1623608312-3"></a>
-<a name="rest_code_96fbdf6c38974a449a474c1623608312-4"></a>./utils/imports.php --parse-tiger /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/
+<pre class="code bash"><a name="rest_code_046a829e2d454618ac3aecbaabbbb0d7-1"></a>sudo apt-get install python-gdal
+<a name="rest_code_046a829e2d454618ac3aecbaabbbb0d7-2"></a>sudo apt-get install gdal-bin
+<a name="rest_code_046a829e2d454618ac3aecbaabbbb0d7-3"></a>
+<a name="rest_code_046a829e2d454618ac3aecbaabbbb0d7-4"></a>./utils/imports.php --parse-tiger /gisdata/ftp2.census.gov/geo/tiger/TIGER2015/EDGES/
 </pre>
 <p>Then we'll load it:</p>
-<pre class="code bash"><a name="rest_code_d5b6f18d36b94470b0fa4563eceab183-1"></a>./utils/setup.php --import-tiger-data
+<pre class="code bash"><a name="rest_code_269fff61bacb4c869d6402c5b5527726-1"></a>./utils/setup.php --import-tiger-data
 </pre>
 <p>Enable the use of Tiger data in the settings/local.php file...</p>
-<pre class="code php"><a name="rest_code_d8b3942ae8644e27b5c1e9c4f5c7c167-1"></a><span class="x">@define('CONST_Use_US_Tiger_Data', true);</span>
+<pre class="code php"><a name="rest_code_d9dcd3ff348140dea0c8f4be0364988b-1"></a><span class="x">@define('CONST_Use_US_Tiger_Data', true);</span>
 </pre>
 <p>...and then run the setup script:</p>
-<pre class="code bash"><a name="rest_code_538cceb4896745f3b5e1ae960db10326-1"></a>./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
+<pre class="code bash"><a name="rest_code_866f0dcad88c4eccb544bda87714e3e0-1"></a>./utils/setup.php --create-functions --enable-diff-updates --create-partition-functions
 </pre>
 <p>Again, let's geocode a test address to confirm everything is configured correctly.</p>
-<pre class="code bash"><a name="rest_code_29ca4011521a44499ebce1ea535aff17-1"></a>curl <span class="s2">"http://127.0.0.1/nominatim/search.php?q=400%20S%20Monroe%20St%2C%20Tallahassee%2C%20FL%2032399&amp;format=json"</span>
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-2"></a>
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-3"></a><span class="o">[{</span><span class="s2">"place_id"</span>:<span class="s2">"1828601"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-4"></a>  <span class="s2">"licence"</span>:<span class="s2">"Data © OpenStreetMap contributors, ODbL 1.0. http:\/\/www.openstreetmap.org\/copyright"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-5"></a>  <span class="s2">"osm_type"</span>:<span class="s2">"tiger"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-6"></a>  <span class="s2">"osm_id"</span>:<span class="s2">"1828601"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-7"></a>  <span class="s2">"boundingbox"</span>:<span class="o">[</span><span class="s2">"30.437948"</span>,<span class="s2">"30.438048"</span>,<span class="s2">"-84.280774"</span>,<span class="s2">"-84.280674"</span><span class="o">]</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-8"></a>  <span class="s2">"lat"</span>:<span class="s2">"30.437998"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-9"></a>  <span class="s2">"lon"</span>:<span class="s2">"-84.280724"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-10"></a>  <span class="s2">"display_name"</span>:<span class="s2">"400, South Monroe Street, Tallahassee, Leon County, Florida, 32301, United States of America"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-11"></a>  <span class="s2">"class"</span>:<span class="s2">"place"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-12"></a>  <span class="s2">"type"</span>:<span class="s2">"house"</span>,
-<a name="rest_code_29ca4011521a44499ebce1ea535aff17-13"></a>  <span class="s2">"importance"</span>:0.511<span class="o">}]</span>
+<pre class="code bash"><a name="rest_code_0c068f378f92481ab918c17e55fcb35f-1"></a>curl <span class="s2">"http://127.0.0.1/nominatim/search.php?q=400%20S%20Monroe%20St%2C%20Tallahassee%2C%20FL%2032399&amp;format=json"</span>
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-2"></a>
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-3"></a><span class="o">[{</span><span class="s2">"place_id"</span>:<span class="s2">"1828601"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-4"></a>  <span class="s2">"licence"</span>:<span class="s2">"Data © OpenStreetMap contributors, ODbL 1.0. http:\/\/www.openstreetmap.org\/copyright"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-5"></a>  <span class="s2">"osm_type"</span>:<span class="s2">"tiger"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-6"></a>  <span class="s2">"osm_id"</span>:<span class="s2">"1828601"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-7"></a>  <span class="s2">"boundingbox"</span>:<span class="o">[</span><span class="s2">"30.437948"</span>,<span class="s2">"30.438048"</span>,<span class="s2">"-84.280774"</span>,<span class="s2">"-84.280674"</span><span class="o">]</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-8"></a>  <span class="s2">"lat"</span>:<span class="s2">"30.437998"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-9"></a>  <span class="s2">"lon"</span>:<span class="s2">"-84.280724"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-10"></a>  <span class="s2">"display_name"</span>:<span class="s2">"400, South Monroe Street, Tallahassee, Leon County, Florida, 32301, United States of America"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-11"></a>  <span class="s2">"class"</span>:<span class="s2">"place"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-12"></a>  <span class="s2">"type"</span>:<span class="s2">"house"</span>,
+<a name="rest_code_0c068f378f92481ab918c17e55fcb35f-13"></a>  <span class="s2">"importance"</span>:0.511<span class="o">}]</span>
 </pre>
 <p>At this point, all three geocoders are functional and loaded with 2015 range
-data. In Part 2 we'll load and geocode some benchmark data.</p>
+data. In <a class="reference external" href="/posts/geocoder-showdown-part-2">Part 2</a> we'll load and geocode some benchmark data.</p>
+<!-- Part 2: link:/posts/geocoder-showdown-part-2 -->
 </div>
 </div>
 </div>
     </div>
-    <aside class="postpromonav"><nav></nav></aside><section class="comments hidden-print"><h2>Comments</h2>
+    <aside class="postpromonav"><nav><ul class="pager hidden-print">
+<li class="next">
+                <a href="../geocoder-showdown-part-2/" rel="next" title="Geocoder Showdown Part 2: Geocoding Benchmark Data">Next post</a>
+            </li>
+        </ul></nav></aside><section class="comments hidden-print"><h2>Comments</h2>
         
         
         <div id="disqus_thread"></div>

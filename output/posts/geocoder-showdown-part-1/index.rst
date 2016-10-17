@@ -13,31 +13,30 @@
 Back in 2011, I `asked a question`_ on gis.stackexchange.com regarding the
 accuracy of range-based geocoders that can be installed and run locally. Since
 then, I've leveraged several solutions for the bulk geocoding of millions of
-addresses, including the `PostGIS geocoder`_, the ruby-based `Geocommons
-Geocoder`_,  and SmartyStreets_ (which doesn't run locally but has no trouble
-geocoding millions of addresses per hour). I haven't come across a
-thorough comparison of the setup, usage, and performance of these
-geocoders in the meantime, so I figured I'd evaluate them here.
+addresses, including the `PostGIS geocoder`_ and the ruby-based `Geocommons
+Geocoder::US`_. I haven't come across a thorough comparison of the setup, usage,
+and performance of these geocoders in the meantime, so I figured I'd evaluate
+them here.
 
 .. _asked a question: http://gis.stackexchange.com/questions/7271/geocode-quality-nominatim-vs-postgis-geocoder-vs-geocoderus-2-0)
 .. _PostGIS geocoder: http://postgis.net/docs/Geocode.html
-.. _Geocommons Geocoder: https://github.com/geocommons/geocoder/
-.. _SmartyStreets: https://smartystreets.com/
-
+.. _Geocommons Geocoder::US: https://github.com/geocommons/geocoder/
 
 In Part 1 I'll cover the installation and configuration of the PostGIS Tiger
 geocoder, the Nominatim geocoder, and the Geocommons Geocoder. While there are
 web services that expose each through APIs, I wanted to document the setup and
 installation of each for offline processing.
 
-In `Part 2`_ I'll download, prep, and geocode a reference dataset to use as a
-benchmark: the Florida extract of the openaddresses.io_ database.
+In `Part 2`_ I'll download, prepare, and geocode a reference dataset to use as
+a benchmark: the Florida extract of the OpenAddresses_ database.
 
-.. _openaddresses.io: http://openaddresses.io
+.. _OpenAddresses: http://openaddresses.io
 .. _Part 2: link:/posts/geocoder-showdown-part-2
 
-In Part 3, we'll take a look at the accuracy of each geocoder against our
-reference data set.
+In `Part 3`_ I'll evaluate the accuracy of each geocoder against our reference
+data set.
+
+.. _Part 3: link:/posts/geocoder-showdown-part-3
 
 Installing the Geocoders
 ========================
@@ -56,16 +55,6 @@ First we'll set the following PostgreSQL environment variables for convenience.
     export PGDATABASE=geocoder
     export PGUSER=postgres
 
-
-Next, add the PostgreSQL apt repo and key.
-
-.. code-block:: bash
-
-    sudo add-apt-repository \
-        "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main"
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-        sudo apt-key add -
-    sudo apt-get update
 
 Install PostgreSQL 9.5 and PostGIS 2.2:
 
@@ -108,8 +97,26 @@ Be sure to turn these on after the data has been loaded, or you'll risk not
 only data *loss* in the event of a crash, but data *corruption*.
 
 Also, before connecting to our database, you'll need to edit the ``pg_hba.conf``
-file to ``trust`` local connections.
+file to ``trust`` local connections. The default location on Ubuntu is
+``/etc/postgresql/9.5/main/pg_hba.conf``
 
+.. code-block:: 
+
+    # "local" is for Unix domain socket connections only
+    local   all             all                                     trust
+    # IPv4 local connections:
+    host    all             all             127.0.0.1/32            trust
+
+Restart Postgres with ``sudo service postgresql restart`` and you should be
+able to connect with `psql`:
+
+.. code-block:: bash
+
+    $ psql
+    psql (9.5.4)
+    Type "help" for help.
+    
+    geocoder=# 
 
 Configuring the PostGIS Tiger Geocoder
 --------------------------------------
@@ -165,8 +172,8 @@ Check that the geocoder and all necessary data was installed correctly.
 
 With that, our PostGIS TIGER geocoder is installed and ready to go.
 
-The Geocommons Geocoder
------------------------
+The Geocommons Geocoder::US
+---------------------------
 
 Install some dependencies:
 
@@ -236,7 +243,7 @@ address:
 Installing Nominatim
 --------------------
 Install the Nominatim dependencies (some of these were installed in previous
-steps, but are included here for completeness):
+steps but are included here for completeness):
 
 .. code-block:: bash
 
@@ -247,7 +254,7 @@ steps, but are included here for completeness):
         postgresql-contrib-9.5 apache2 php php-pgsql libapache2-mod-php \
         php-pear php-db git
 
-We'll use separate linux user accounts for nominatim:
+We'll use a separate linux user account for nominatim:
 
 .. code-block:: bash
 
@@ -369,4 +376,6 @@ Again, let's geocode a test address to confirm everything is configured correctl
       "importance":0.511}]
 
 At this point, all three geocoders are functional and loaded with 2015 range
-data. In Part 2 we'll load and geocode some benchmark data.
+data. In `Part 2`_ we'll load and geocode some benchmark data.
+
+.. Part 2: link:/posts/geocoder-showdown-part-2

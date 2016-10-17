@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>geocode-nominatim.py | danpelota.com</title>
 <link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/ipython.min.css" rel="stylesheet" type="text/css">
+<link href="../../assets/css/nikola_ipython.css" rel="stylesheet" type="text/css">
 <meta content="#5670d4" name="theme-color">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
 <link rel="canonical" href="https://danpelota.com/listings/geocode/geocode-nominatim.py.html">
@@ -16,7 +18,7 @@
 
 <!-- Menubar -->
 
-<nav class="navbar navbar-default navbar-static-top"><div class="container">
+<nav class="navbar navbar-inverse navbar-static-top"><div class="container">
 <!-- This keeps the margins nice -->
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar" aria-controls="bs-navbar" aria-expanded="false">
@@ -102,18 +104,21 @@
 <a href="#listingsgeocodegeocode-nominatimpy-29">29</a>
 <a href="#listingsgeocodegeocode-nominatimpy-30">30</a>
 <a href="#listingsgeocodegeocode-nominatimpy-31">31</a>
-<a href="#listingsgeocodegeocode-nominatimpy-32">32</a></pre></div></td>
+<a href="#listingsgeocodegeocode-nominatimpy-32">32</a>
+<a href="#listingsgeocodegeocode-nominatimpy-33">33</a>
+<a href="#listingsgeocodegeocode-nominatimpy-34">34</a>
+<a href="#listingsgeocodegeocode-nominatimpy-35">35</a></pre></div></td>
 <td class="code"><pre class="code literal-block"><a name="listingsgeocodegeocode-nominatimpy-1"></a><span class="kn">import</span> <span class="nn">requests</span>
 <a name="listingsgeocodegeocode-nominatimpy-2"></a><span class="kn">import</span> <span class="nn">psycopg2</span> <span class="kn">as</span> <span class="nn">pg</span>
-<a name="listingsgeocodegeocode-nominatimpy-3"></a><span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
-<a name="listingsgeocodegeocode-nominatimpy-4"></a>
-<a name="listingsgeocodegeocode-nominatimpy-5"></a><span class="n">con</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s1">'geocoder'</span><span class="p">)</span>
-<a name="listingsgeocodegeocode-nominatimpy-6"></a><span class="n">cur</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-<a name="listingsgeocodegeocode-nominatimpy-7"></a>
+<a name="listingsgeocodegeocode-nominatimpy-3"></a>
+<a name="listingsgeocodegeocode-nominatimpy-4"></a><span class="n">con</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="s1">'geocoder'</span><span class="p">)</span>
+<a name="listingsgeocodegeocode-nominatimpy-5"></a><span class="n">cur</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<a name="listingsgeocodegeocode-nominatimpy-6"></a>
+<a name="listingsgeocodegeocode-nominatimpy-7"></a><span class="c1"># The nominatime endpoint from our local installation</span>
 <a name="listingsgeocodegeocode-nominatimpy-8"></a><span class="n">url</span> <span class="o">=</span> <span class="s1">'http://localhost/nominatim/search.php'</span>
 <a name="listingsgeocodegeocode-nominatimpy-9"></a><span class="n">sql</span> <span class="o">=</span> <span class="s1">'''</span>
 <a name="listingsgeocodegeocode-nominatimpy-10"></a><span class="s1">SELECT</span>
-<a name="listingsgeocodegeocode-nominatimpy-11"></a><span class="s1">    a.addy_id, </span>
+<a name="listingsgeocodegeocode-nominatimpy-11"></a><span class="s1">    a.addy_id,</span>
 <a name="listingsgeocodegeocode-nominatimpy-12"></a><span class="s1">    house_number || ' ' || street || ', ' || city || ' ' || region || ' ' || postcode as freeform</span>
 <a name="listingsgeocodegeocode-nominatimpy-13"></a><span class="s1">  FROM sampled_addy a</span>
 <a name="listingsgeocodegeocode-nominatimpy-14"></a><span class="s1">  LEFT JOIN geocoded c ON c.method = 'nominatim' AND c.addy_id = a.addy_id</span>
@@ -124,17 +129,20 @@
 <a name="listingsgeocodegeocode-nominatimpy-19"></a>
 <a name="listingsgeocodegeocode-nominatimpy-20"></a><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
 <a name="listingsgeocodegeocode-nominatimpy-21"></a><span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">cur</span><span class="p">:</span>
-<a name="listingsgeocodegeocode-nominatimpy-22"></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">'q'</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span><span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<a name="listingsgeocodegeocode-nominatimpy-23"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a name="listingsgeocodegeocode-nominatimpy-24"></a>        <span class="n">coded</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a name="listingsgeocodegeocode-nominatimpy-25"></a>        <span class="n">coded</span><span class="p">[</span><span class="s1">'addy_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a name="listingsgeocodegeocode-nominatimpy-26"></a>        <span class="n">geocoded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coded</span><span class="p">)</span>
-<a name="listingsgeocodegeocode-nominatimpy-27"></a>    <span class="k">else</span><span class="p">:</span>
-<a name="listingsgeocodegeocode-nominatimpy-28"></a>        <span class="k">pass</span>
-<a name="listingsgeocodegeocode-nominatimpy-29"></a>
-<a name="listingsgeocodegeocode-nominatimpy-30"></a><span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s2">"INSERT INTO geocoded(addy_id, lat, lon, method) VALUES(</span><span class="si">%(addy_id)s</span><span class="s2">, </span><span class="si">%(lat)s</span><span class="s2">, </span><span class="si">%(lon)s</span><span class="s2">, 'nominatim')"</span><span class="p">,</span> <span class="n">geocoded</span><span class="p">)</span>
-<a name="listingsgeocodegeocode-nominatimpy-31"></a><span class="n">con</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-<a name="listingsgeocodegeocode-nominatimpy-32"></a><span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a name="listingsgeocodegeocode-nominatimpy-22"></a>    <span class="c1"># Make a get request to our nominatime endpoint with our address</span>
+<a name="listingsgeocodegeocode-nominatimpy-23"></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">'q'</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'json'</span><span class="p">})</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<a name="listingsgeocodegeocode-nominatimpy-24"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a name="listingsgeocodegeocode-nominatimpy-25"></a>        <span class="n">coded</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a name="listingsgeocodegeocode-nominatimpy-26"></a>        <span class="n">coded</span><span class="p">[</span><span class="s1">'addy_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a name="listingsgeocodegeocode-nominatimpy-27"></a>        <span class="n">geocoded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coded</span><span class="p">)</span>
+<a name="listingsgeocodegeocode-nominatimpy-28"></a>    <span class="k">else</span><span class="p">:</span>
+<a name="listingsgeocodegeocode-nominatimpy-29"></a>        <span class="k">pass</span>
+<a name="listingsgeocodegeocode-nominatimpy-30"></a>
+<a name="listingsgeocodegeocode-nominatimpy-31"></a><span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s1">'''</span>
+<a name="listingsgeocodegeocode-nominatimpy-32"></a><span class="s1">    INSERT INTO geocoded(addy_id, lat, lon, method)</span>
+<a name="listingsgeocodegeocode-nominatimpy-33"></a><span class="s1">    VALUES(</span><span class="si">%(addy_id)s</span><span class="s1">, </span><span class="si">%(lat)s</span><span class="s1">, </span><span class="si">%(lon)s</span><span class="s1">, 'nominatim')'''</span><span class="p">,</span> <span class="n">geocoded</span><span class="p">)</span>
+<a name="listingsgeocodegeocode-nominatimpy-34"></a><span class="n">con</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<a name="listingsgeocodegeocode-nominatimpy-35"></a><span class="n">con</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></td>
 </tr></table>
 </div>
